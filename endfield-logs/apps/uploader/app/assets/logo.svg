@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Endfield Logs logo">
+  <rect width="512" height="512" rx="56" fill="#f7f4ef"/>
+  <g transform="matrix(1.34 0 0 1.34 -87.04 -87.04)">
+  <g stroke="#1f252b" stroke-width="2" stroke-linecap="round" opacity="0.8">
+    <path d="M256 78v42"/>
+    <path d="M256 392v42"/>
+    <path d="M132 256h48"/>
+    <path d="M332 256h48"/>
+    <path d="M251 92h10"/>
+    <path d="M256 87v10"/>
+    <path d="M251 420h10"/>
+    <path d="M256 415v10"/>
+    <path d="M142 251l6 5-6 5-6-5z" fill="#1f252b" stroke="none"/>
+    <path d="M368 251h14"/>
+    <circle cx="190" cy="256" r="3" fill="#1f252b" stroke="none"/>
+  </g>
+  <g transform="translate(0 4)">
+    <path d="M256 126l34 22v220l-34 24z" fill="#222629"/>
+    <path d="M232 98l26 18v252l-26 18z" fill="#8f9291"/>
+    <path d="M240 104l18 12v246l-18 13z" fill="#b8bab8" opacity="0.45"/>
+    <path d="M216 262L128 360h82l52-58z" fill="#202426"/>
+    <path d="M296 258l88 102h-92l-50-62z" fill="#25282a"/>
+    <path d="M278 292l45 50h-38l-27-31z" fill="#2b2e30"/>
+    <path d="M304 174l54-48v18l-54 48z" fill="#a7aaa9"/>
+    <path d="M304 204l54-48v18l-54 48z" fill="#9ea2a1"/>
+    <path d="M304 234l54-48v18l-54 48z" fill="#888d8d"/>
+    <path d="M154 346l56-50h12l-56 50z" fill="#f7f4ef"/>
+    <path d="M180 346l56-50h12l-56 50z" fill="#f7f4ef"/>
+    <path d="M206 346l52-46h12l-52 46z" fill="#f7f4ef"/>
+    <path d="M144 360l54-48h10l-54 48z" fill="#1f252b"/>
+    <path d="M196 232l20-22v52l-20 22z" fill="#0f1417"/>
+    <path d="M286 224l18 20v66l-18-20z" fill="#e9e7e3"/>
+    <path d="M230 108l28 16 30 18-30-20z" fill="#d8d8d4" opacity="0.45"/>
+    <path d="M232 98l26 18v252l-26 18z" fill="none" stroke="#f3f1eb" stroke-width="1.2" opacity="0.5"/>
+  </g>
+  </g>
+</svg>

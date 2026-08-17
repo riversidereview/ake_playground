@@ -1,0 +1,28 @@
+[project]
+name = "endfield-logs-uploader"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "pyside6>=6.9.0",
+  "httpx[socks]>=0.28.0",
+  "pydantic>=2.11.0",
+  "uploader-core",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+]
+build = [
+  "pyinstaller>=6.15.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "../../packages/uploader_core", "../../packages/parser_core"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

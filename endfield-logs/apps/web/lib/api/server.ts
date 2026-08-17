@@ -1,0 +1,48 @@
+import "server-only";
+
+import { cookies } from "next/headers";
+
+import type { AuthMeResponse } from "./types";
+
+const INTERNAL_API_BASE_URL =
+  process.env.API_BASE_URL_INTERNAL?.trim().replace(/\/+$/, "") ||
+  process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "") ||
+  "http://127.0.0.1:8000";
+
+export async function fetchApiServer<T>(path: string, init?: RequestInit): Promise<T> {
+  const requestCookies = await cookies();
+  const headers = new Headers(init?.headers);
+
+  const cookieHeader = requestCookies.toString();
+  if (cookieHeader) {
+    headers.set("cookie", cookieHeader);
+  }
+
+  const response = await fetch(`${INTERNAL_API_BASE_URL}${path}`, {
+    cache: "no-store",
+    ...init,
+    headers,
+  });
+
+  if (!response.ok) {
+    let message = `接口请求失败：${response.status}`;
+    try {
+      const data = (await response.json()) as { error?: { message?: string } };
+      message = data.error?.message ?? message;
+    } catch {
+      // Ignore JSON parse errors and keep the generic message.
+    }
+    throw new Error(message);
+  }
+
+  return (await response.json()) as T;
+}
+
+export async function getCurrentUser() {
+  try {
+    const response = await fetchApiServer<AuthMeResponse>("/api/auth/me");
+    return response.user;
+  } catch {
+    return null;
+  }
+}

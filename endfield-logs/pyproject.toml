@@ -1,0 +1,8 @@
+[tool.uv.workspace]
+members = [
+  "apps/api",
+  "apps/uploader",
+  "packages/parser_core",
+  "packages/upload_domain",
+  "packages/uploader_core",
+]

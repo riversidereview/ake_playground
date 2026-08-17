@@ -1,0 +1,3 @@
+class UploadDomainError(Exception):
+    pass
+

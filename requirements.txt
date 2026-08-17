@@ -1,0 +1,8 @@
+./endfield-logs/packages/parser_core
+./endfield-logs/apps/api
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+sqlalchemy>=2.0.0
+psycopg[binary]>=3.2.0
+pydantic-settings>=2.8.0
+email-validator>=2.2.0
