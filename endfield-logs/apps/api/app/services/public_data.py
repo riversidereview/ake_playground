@@ -175,13 +175,9 @@ def _normalize_skill_display_name(skill_name: str, skill_key: str | None = None)
 
 def _local_public_image_url(candidate: str) -> str | None:
     if candidate.startswith("/public/images/"):
-        local_candidate = candidate.removeprefix("/public")
-    elif candidate.startswith("/images/"):
-        local_candidate = candidate
-    else:
-        return None
-    if (WEB_PUBLIC_ROOT / local_candidate.removeprefix("/")).exists():
-        return local_candidate
+        return candidate.removeprefix("/public")
+    if candidate.startswith("/images/"):
+        return candidate
     return None
 
 

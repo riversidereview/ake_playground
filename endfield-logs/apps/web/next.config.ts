@@ -4,7 +4,21 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
   async rewrites() {
+    const cdnBase =
+      process.env.NEXT_PUBLIC_ASSET_CDN_URL?.replace(/\/+$/, "") ||
+      process.env.ASSET_CDN_URL?.replace(/\/+$/, "");
+
+    const imageRewrites = cdnBase
+      ? [
+          {
+            source: "/images/:path*",
+            destination: `${cdnBase}/images/:path*`,
+          },
+        ]
+      : [];
+
     return [
+      ...imageRewrites,
       {
         source: "/operators/:path*",
         destination: "/endaxis/operators/:path*",
