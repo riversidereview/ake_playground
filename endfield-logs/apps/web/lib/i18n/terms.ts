@@ -989,8 +989,6 @@ export function getLocalizedBuffName(
   return trimmed;
 }
 
-const DEFAULT_ASSET_CDN_URL = "https://mj9w6w5vw6wr6swt.public.blob.vercel-storage.com";
-
 export function resolveAssetUrl(url?: string | null): string | null {
   if (!url) return null;
   const trimmed = url.trim();
@@ -998,10 +996,12 @@ export function resolveAssetUrl(url?: string | null): string | null {
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
     return trimmed;
   }
-  const cdnBase = (typeof process !== "undefined" ? process.env.NEXT_PUBLIC_ASSET_CDN_URL : "") || DEFAULT_ASSET_CDN_URL;
-  const cleanCdn = cdnBase.replace(/\/+$/, "");
-  const cleanPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-  return `${cleanCdn}${cleanPath}`;
+  const cdnBase = (typeof process !== "undefined" ? process.env.NEXT_PUBLIC_ASSET_CDN_URL : "")?.replace(/\/+$/, "");
+  if (cdnBase) {
+    const cleanPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+    return `${cdnBase}${cleanPath}`;
+  }
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
 }
 
 export function getWeaponIconUrl(iconUrl?: string | null, weaponTemplate?: string | null): string | null {

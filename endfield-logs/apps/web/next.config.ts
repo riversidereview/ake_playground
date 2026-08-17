@@ -7,15 +7,14 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "*.public.blob.vercel-storage.com",
+        hostname: "**",
       },
     ],
   },
   async rewrites() {
     const cdnBase =
       process.env.NEXT_PUBLIC_ASSET_CDN_URL?.replace(/\/+$/, "") ||
-      process.env.ASSET_CDN_URL?.replace(/\/+$/, "") ||
-      "https://mj9w6w5vw6wr6swt.public.blob.vercel-storage.com";
+      process.env.ASSET_CDN_URL?.replace(/\/+$/, "");
 
     const imageRewrites = cdnBase
       ? [
