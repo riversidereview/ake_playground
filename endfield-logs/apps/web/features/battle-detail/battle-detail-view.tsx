@@ -752,6 +752,11 @@ function LoadoutIcon({
 }) {
   const resolvedUrl = resolveAssetUrl(iconUrl);
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [resolvedUrl]);
+
   const showImage = Boolean(resolvedUrl) && !failed && !isEmpty;
 
   return (
