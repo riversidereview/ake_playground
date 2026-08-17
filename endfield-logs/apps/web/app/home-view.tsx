@@ -10,7 +10,7 @@ import { hasContractTagData } from "../lib/contract-tags";
 import { formatBossDisplayName, formatBossEyebrow } from "../lib/format/boss-display";
 import { formatDurationMs } from "../lib/format/duration";
 import { useI18n } from "../lib/i18n/context";
-import { getLocalizedCharacterName } from "../lib/i18n/terms";
+import { getLocalizedCharacterName, resolveAssetUrl } from "../lib/i18n/terms";
 
 function getRankTone(scorePercent: number): string {
   if (scorePercent >= 100) {
@@ -120,8 +120,9 @@ const bossCardPositions: Record<string, string> = {
 };
 
 function getBossCardStyle(bossSlug: string): CSSProperties {
+  const bg = resolveAssetUrl(bossCardBackgrounds[bossSlug] ?? bossCardBackgrounds.dung01_group_bossrush01);
   return {
-    "--boss-card-bg": `url(${bossCardBackgrounds[bossSlug] ?? bossCardBackgrounds.dung01_group_bossrush01})`,
+    "--boss-card-bg": bg ? `url(${bg})` : undefined,
     "--boss-card-position": bossCardPositions[bossSlug] ?? "center center",
   } as CSSProperties;
 }

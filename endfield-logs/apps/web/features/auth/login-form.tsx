@@ -77,6 +77,10 @@ export function LoginForm() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (mode === "register" && password.length < 6) {
+      setMessage("密码长度不能少于 6 位");
+      return;
+    }
     setLoading(true);
     setMessage(null);
     try {
@@ -94,9 +98,23 @@ export function LoginForm() {
           purpose: "web_login",
         }),
       });
-      const data = (await response.json()) as AuthResponse | { error?: { message?: string } };
+      const data = (await response.json()) as
+        | AuthResponse
+        | { error?: { message?: string }; detail?: string | Array<{ msg?: string; loc?: string[] }> };
       if (!response.ok) {
-        throw new Error(("error" in data && data.error?.message) || t.common.error);
+        let errMsg = t.common.error;
+        if ("error" in data && data.error?.message) {
+          errMsg = data.error.message;
+        } else if ("detail" in data) {
+          if (typeof data.detail === "string") {
+            errMsg = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            errMsg = data.detail
+              .map((d) => (d.msg ? (d.msg.includes("at least 6") ? "密码至少需要 6 个字符" : d.msg) : JSON.stringify(d)))
+              .join("；");
+          }
+        }
+        throw new Error(errMsg);
       }
       const authData = data as AuthResponse;
       setMessage(mode === "login" ? t.auth.loginSuccess : t.auth.registerSuccess);
@@ -171,7 +189,7 @@ export function LoginForm() {
             autoComplete={mode === "login" ? "current-password" : "new-password"}
             className="field-input"
             onChange={(event) => setPassword(event.target.value)}
-            placeholder={t.auth.passwordPlaceholder}
+            placeholder={mode === "register" ? "请输入密码（至少 6 位）" : t.auth.passwordPlaceholder}
             type="password"
             value={password}
           />
@@ -179,7 +197,11 @@ export function LoginForm() {
 
         <button
           className="button-primary"
-          disabled={loading || !password || (mode === "login" ? !email : !nickname || nickname.trim().length < 2)}
+          disabled={
+            loading ||
+            !password ||
+            (mode === "login" ? !email : !nickname || nickname.trim().length < 2 || password.length < 6)
+          }
           type="submit"
         >
           {loading

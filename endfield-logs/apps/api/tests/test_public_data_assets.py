@@ -268,16 +268,24 @@ def test_normalize_public_asset_url_maps_akedata_hosted_image_to_local_images() 
     )
 
 
-def test_normalize_public_asset_url_omits_missing_akedata_public_path() -> None:
-    assert _normalize_public_asset_url("/public/images/equip/iconbig/item_equip_not_synced.png") is None
+def test_normalize_public_asset_url_omits_missing_or_empty_path() -> None:
+    assert _normalize_public_asset_url(None) is None
+    assert _normalize_public_asset_url("") is None
+    assert _normalize_public_asset_url("   ") is None
 
 
-def test_normalize_public_asset_url_omits_missing_akedata_hosted_image() -> None:
-    assert _normalize_public_asset_url("https://www.akedata.top/public/images/equip/iconbig/item_equip_not_synced.png") is None
+def test_normalize_public_asset_url_normalizes_akedata_hosted_image() -> None:
+    assert (
+        _normalize_public_asset_url("https://www.akedata.top/public/images/equip/iconbig/item_equip_not_synced.png")
+        == "/images/equip/iconbig/item_equip_not_synced.png"
+    )
 
 
-def test_normalize_public_asset_url_omits_missing_local_images_path() -> None:
-    assert _normalize_public_asset_url("/images/equip/iconbig/item_equip_not_synced.png") is None
+def test_normalize_public_asset_url_normalizes_local_images_path() -> None:
+    assert (
+        _normalize_public_asset_url("/images/equip/iconbig/item_equip_not_synced.png")
+        == "/images/equip/iconbig/item_equip_not_synced.png"
+    )
 
 
 def test_normalize_public_asset_url_preserves_non_akedata_urls() -> None:
@@ -697,7 +705,7 @@ def test_rdps_rankings_require_per_battle_strict_audit() -> None:
 
 
 def test_character_statistics_catalog_has_fifteen_six_star_characters_and_one_admin() -> None:
-    assert len(SIX_STAR_STATISTICS_CATALOG) == 15
+    assert len(SIX_STAR_STATISTICS_CATALOG) == 16
     admin_rows = [entry for entry in SIX_STAR_STATISTICS_CATALOG if entry.name == "管理员"]
     assert len(admin_rows) == 1
     assert admin_rows[0].char_id == ADMIN_STATISTICS_CHARACTER_KEY
@@ -738,7 +746,7 @@ def test_character_statistics_keep_all_runs_and_sort_sufficient_samples_first() 
     assert statistics.scope == "boss"
     assert statistics.includedBossCount == 1
     assert statistics.totalSampleCount == 9
-    assert len(statistics.rows) == 15
+    assert len(statistics.rows) == len(SIX_STAR_STATISTICS_CATALOG)
     assert rows["汤汤"].sampleCount == 5
     assert rows["汤汤"].rank == 1
     assert rows["汤汤"].p10 == 14.0

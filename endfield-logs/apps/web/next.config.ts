@@ -3,6 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+      },
+    ],
+  },
   async rewrites() {
     const cdnBase =
       process.env.NEXT_PUBLIC_ASSET_CDN_URL?.replace(/\/+$/, "") ||
