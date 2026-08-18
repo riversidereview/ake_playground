@@ -3008,13 +3008,14 @@ button:disabled {
 .timeline-node-title {
   min-width: 0;
   width: 100%;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: -0.2px;
-  line-height: 1;
+  line-height: 1.25;
   text-align: center;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: visible;
+  padding: 0 1px;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.38);
 }
 
