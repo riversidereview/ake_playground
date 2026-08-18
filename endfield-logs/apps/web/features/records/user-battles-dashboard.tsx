@@ -41,7 +41,7 @@ function formatNumber(value: number, locale: string) {
 }
 
 function formatBossShortName(value: string) {
-  return value.replace(/^(危境再现|危境碎片|危机合约|影拓丰碑\d期|Crisis Replay|Crisis Fragments|Contingency Contract|Echoes of War|Monument of Shadows: Phase \d)[·・\s:]*/, "");
+  return value.replace(/^(危境再现|危境碎片|危机合约|影拓丰碑\d期|Crisis Replay|Crisis Fragments|Contingency Contract|Echoes of War|Umbral Monument: Phase \d|Monument of Shadows: Phase \d)[·・\s:]*/, "");
 }
 
 function getRankingGroupKey(row: Pick<RankingRow, "bossSlug" | "dungeonName">): RankingGroupKey | null {

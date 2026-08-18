@@ -131,10 +131,10 @@ const GROUP_LABELS_EN: Record<RankingGroupKey, { label: string; note: string }> 
   crisisFragment: { label: "Crisis Fragments", note: "Craghowler / Blitzcrash Blightshade" },
   contingencyContract: { label: "Contingency Contract", note: "Event Speedrun" },
   warEcho: { label: "Echoes of War", note: "All 8 Brutal Difficulty Encounters" },
-  shadowPhase1: { label: "Monument of Shadows: Phase 1", note: "9 Agony Instances" },
-  shadowPhase2: { label: "Monument of Shadows: Phase 2", note: "Turbid Manifestation · 6 Agony Instances" },
-  shadowPhase3: { label: "Monument of Shadows: Phase 3", note: "Clamor of Silence · 6 Agony Instances" },
-  shadowPhase4: { label: "Monument of Shadows: Phase 4", note: "Hou in the Mountains · 4 Agony Instances" },
+  shadowPhase1: { label: "Umbral Monument: Phase 1", note: "9 Agony Instances" },
+  shadowPhase2: { label: "Umbral Monument: Phase 2", note: "Turbid Manifestation · 6 Agony Instances" },
+  shadowPhase3: { label: "Umbral Monument: Phase 3", note: "Clamor of Silence · 6 Agony Instances" },
+  shadowPhase4: { label: "Umbral Monument: Phase 4", note: "Hou in the Mountains · 4 Agony Instances" },
 };
 
 export function getRankingGroupLabel(groupKey: RankingGroupKey, locale: Locale = "en"): string {

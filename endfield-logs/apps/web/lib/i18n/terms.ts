@@ -26,7 +26,7 @@ export const BOSS_NAME_ZH: Record<string, string> = {
   indie_battletower007_ex: "死兽鸣吼·残酷",
   indie_battletower008_ex: "战争简史·残酷",
 
-  // Monument of Shadows Phase 1
+  // Umbral Monument Phase 1
   indie_hard008_s: "怨憎雾海·苦难",
   indie_hard009_s: "血肉熔点·苦难",
   indie_hard007_s: "呼吼炽焰·苦难",
@@ -37,7 +37,7 @@ export const BOSS_NAME_ZH: Record<string, string> = {
   indie_hard005_s: "旁门外道·苦难",
   indie_hard004_s: "弩斧相应·苦难",
 
-  // Monument of Shadows Phase 2
+  // Umbral Monument Phase 2
   indie_hard013_s: "沉寂视界·苦难",
   indie_hard014_s: "枯竭海退·苦难",
   indie_hard010_s: "潮涌遗恨·苦难",
@@ -45,7 +45,7 @@ export const BOSS_NAME_ZH: Record<string, string> = {
   indie_hard015_s: "潜流绝窟·苦难",
   indie_hard011_s: "霜冻联结·苦难",
 
-  // Monument of Shadows Phase 3
+  // Umbral Monument Phase 3
   indie_hard016_s: "仪式旋流·苦难",
   indie_hard017_s: "死寂表象·苦难",
   indie_hard018_s: "忿鼓咆声·苦难",
@@ -53,7 +53,7 @@ export const BOSS_NAME_ZH: Record<string, string> = {
   indie_hard020_s: "溶解窥看·苦难",
   indie_hard021_s: "冯河断水·苦难",
 
-  // Monument of Shadows Phase 4
+  // Umbral Monument Phase 4
   indie_hard022_s: "撼山雾火·苦难",
   indie_hard023_s: "兽群把戏·苦难",
   indie_hard024_s: "山犼争王·苦难",
@@ -113,7 +113,7 @@ export const BOSS_NAME_EN: Record<string, string> = {
   "战争简史·残酷": "Brief History of War: Brutal",
   "战争简史 · 残酷": "Brief History of War: Brutal",
 
-  // Monument of Shadows (Agony)
+  // Umbral Monument (Agony)
   "狂冲盾止·苦难": "Rampaging Shields: Agony",
   "狂冲盾止 · 苦难": "Rampaging Shields: Agony",
   "矢影环伺·苦难": "Bolts and Shadows: Agony",
@@ -263,7 +263,7 @@ export const BOSS_NAME_EN: Record<string, string> = {
   indie_battletower007_ex: "Howling of Undying Beasts: Brutal",
   indie_battletower008_ex: "Brief History of War: Brutal",
 
-  // Monument of Shadows Phase 1
+  // Umbral Monument Phase 1
   indie_hard001_s: "Rampaging Shields: Agony",
   indie_hard002_s: "Bolts and Shadows: Agony",
   indie_hard003_s: "Rock Solid: Agony",
@@ -274,7 +274,7 @@ export const BOSS_NAME_EN: Record<string, string> = {
   indie_hard008_s: "Sea of Loathing: Agony",
   indie_hard009_s: "Melting Point of Flesh: Agony",
 
-  // Monument of Shadows Phase 2
+  // Umbral Monument Phase 2
   indie_hard010_s: "Tidal Grief: Agony",
   indie_hard011_s: "Cryostatic Connection: Agony",
   indie_hard012_s: "Blood Debased: Agony",
@@ -282,7 +282,7 @@ export const BOSS_NAME_EN: Record<string, string> = {
   indie_hard014_s: "Withered Sea: Agony",
   indie_hard015_s: "Underflow Chasm: Agony",
 
-  // Monument of Shadows Phase 3
+  // Umbral Monument Phase 3
   indie_hard016_s: "Ritual Vortex: Agony",
   indie_hard017_s: "Harrowing Æthillu: Agony",
   indie_hard018_s: "Raging Drummer: Agony",
@@ -290,7 +290,7 @@ export const BOSS_NAME_EN: Record<string, string> = {
   indie_hard020_s: "Eyes of Solvent-Kind: Agony",
   indie_hard021_s: "Wading in Raker Turf: Agony",
 
-  // Monument of Shadows Phase 4
+  // Umbral Monument Phase 4
   indie_hard022_s: "Earthshaking Hazefyre: Agony",
   indie_hard023_s: "Mangler and Friends: Agony",
   indie_hard024_s: "King of the Crag: Agony",
@@ -396,6 +396,17 @@ export const DUNGEON_NAME_ZH: Record<string, string> = {
   "Scars of Landbreaking: Brutal": "裂地旧创·残酷",
   "Howling of Undying Beasts: Brutal": "死兽鸣吼·残酷",
   "Brief History of War: Brutal": "战争简史·残酷",
+  "Umbral Monument: Phase 1 · Searing Scars": "影拓丰碑1期 · 灼痛疤痕",
+  "Umbral Monument: Phase 1 · Inorganic Creations": "影拓丰碑1期 · 无机造物",
+  "Umbral Monument: Phase 1 · Forsaken of the Earth": "影拓丰碑1期 · 大地的弃子",
+  "Umbral Monument: Phase 2 · Turbid Manifestation": "影拓丰碑2期 · 浊流具现",
+  "Umbral Monument: Phase 3 · Clamor of Silence": "影拓丰碑3期 · 死寂争鸣",
+  "Umbral Monument: Phase 4 · Hou in the Mountains": "影拓丰碑4期 · 山中见犼",
+  "Umbral Monument: Phase 1": "影拓丰碑1期",
+  "Umbral Monument: Phase 2": "影拓丰碑2期",
+  "Umbral Monument: Phase 3": "影拓丰碑3期",
+  "Umbral Monument: Phase 4": "影拓丰碑4期",
+  // Backwards-compat
   "Monument of Shadows: Phase 1 · Searing Scars": "影拓丰碑1期 · 灼痛疤痕",
   "Monument of Shadows: Phase 1 · Inorganic Creations": "影拓丰碑1期 · 无机造物",
   "Monument of Shadows: Phase 1 · Forsaken of the Earth": "影拓丰碑1期 · 大地的弃子",
@@ -429,16 +440,16 @@ export const DUNGEON_NAME_EN: Record<string, string> = {
   "死兽鸣吼 · 残酷": "Howling of Undying Beasts: Brutal",
   "战争简史·残酷": "Brief History of War: Brutal",
   "战争简史 · 残酷": "Brief History of War: Brutal",
-  "影拓丰碑1期 · 灼痛疤痕": "Monument of Shadows: Phase 1 · Searing Scars",
-  "影拓丰碑1期 · 无机造物": "Monument of Shadows: Phase 1 · Inorganic Creations",
-  "影拓丰碑1期 · 大地的弃子": "Monument of Shadows: Phase 1 · Forsaken of the Earth",
-  "影拓丰碑2期 · 浊流具现": "Monument of Shadows: Phase 2 · Turbid Manifestation",
-  "影拓丰碑3期 · 死寂争鸣": "Monument of Shadows: Phase 3 · Clamor of Silence",
-  "影拓丰碑4期 · 山中见犼": "Monument of Shadows: Phase 4 · Hou in the Mountains",
-  "影拓丰碑1期": "Monument of Shadows: Phase 1",
-  "影拓丰碑2期": "Monument of Shadows: Phase 2",
-  "影拓丰碑3期": "Monument of Shadows: Phase 3",
-  "影拓丰碑4期": "Monument of Shadows: Phase 4",
+  "影拓丰碑1期 · 灼痛疤痕": "Umbral Monument: Phase 1 · Searing Scars",
+  "影拓丰碑1期 · 无机造物": "Umbral Monument: Phase 1 · Inorganic Creations",
+  "影拓丰碑1期 · 大地的弃子": "Umbral Monument: Phase 1 · Forsaken of the Earth",
+  "影拓丰碑2期 · 浊流具现": "Umbral Monument: Phase 2 · Turbid Manifestation",
+  "影拓丰碑3期 · 死寂争鸣": "Umbral Monument: Phase 3 · Clamor of Silence",
+  "影拓丰碑4期 · 山中见犼": "Umbral Monument: Phase 4 · Hou in the Mountains",
+  "影拓丰碑1期": "Umbral Monument: Phase 1",
+  "影拓丰碑2期": "Umbral Monument: Phase 2",
+  "影拓丰碑3期": "Umbral Monument: Phase 3",
+  "影拓丰碑4期": "Umbral Monument: Phase 4",
 };
 
 export const PROFESSION_NAMES: Record<Locale, Record<string, string>> = {
@@ -1067,6 +1078,23 @@ export function getLocalizedCharacterName(
   return trimmed;
 }
 
+export function getLocalizedTargetName(
+  nameOrKey: string | null | undefined,
+  locale: Locale = "en"
+): string {
+  if (!nameOrKey) return "";
+  const trimmed = nameOrKey.trim();
+  const charName = getLocalizedCharacterName(trimmed, locale);
+  if (charName && charName !== trimmed) {
+    return charName;
+  }
+  const bossOrEnemy = getLocalizedBossName(trimmed, null, locale);
+  if (bossOrEnemy && bossOrEnemy !== trimmed) {
+    return bossOrEnemy;
+  }
+  return charName || bossOrEnemy || trimmed;
+}
+
 export function getLocalizedBossName(bossSlugOrName: string, fallbackText: string | null | undefined, locale: Locale): string {
   const slug = bossSlugOrName?.trim() || "";
   const fallback = fallbackText?.trim() || "";
@@ -1110,8 +1138,8 @@ export function getLocalizedBossName(bossSlugOrName: string, fallbackText: strin
   const foundSlugEn = Object.keys(BOSS_NAME_EN).find(
     (key) => BOSS_NAME_EN[key] === slug || BOSS_NAME_EN[key] === fallback,
   );
-  if (foundSlugEn && BOSS_NAME_ZH[foundSlugEn]) {
-    return BOSS_NAME_ZH[foundSlugEn];
+  if (foundSlugEn) {
+    return BOSS_NAME_ZH[foundSlugEn] || foundSlugEn;
   }
   return fallback || slug;
 }
@@ -1132,7 +1160,7 @@ export function getLocalizedDungeonName(dungeonName: string | null | undefined, 
     if (shadowMatch) {
       const phase = shadowMatch[1];
       const sub = shadowMatch[2];
-      return sub ? `Monument of Shadows: Phase ${phase} · ${sub}` : `Monument of Shadows: Phase ${phase}`;
+      return sub ? `Umbral Monument: Phase ${phase} · ${sub}` : `Umbral Monument: Phase ${phase}`;
     }
     return trimmed;
   }
@@ -1146,7 +1174,7 @@ export function getLocalizedDungeonName(dungeonName: string | null | undefined, 
   if (BOSS_NAME_ZH[trimmed]) {
     return BOSS_NAME_ZH[trimmed];
   }
-  const enShadowMatch = trimmed.match(/^Monument of Shadows:\s*Phase\s*(\d+)(?:[ ·・]*(.+))?/i);
+  const enShadowMatch = trimmed.match(/^(?:Umbral Monument|Monument of Shadows):\s*Phase\s*(\d+)(?:[ ·・]*(.+))?/i);
   if (enShadowMatch) {
     const phase = enShadowMatch[1];
     const sub = enShadowMatch[2];

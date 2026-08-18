@@ -19,6 +19,8 @@ import {
   getLocalizedEquipSuitName,
   getLocalizedEquipPieceName,
   getLocalizedEquipPartName,
+  getLocalizedDungeonName,
+  getLocalizedTargetName,
 } from "../lib/i18n/terms";
 import {
   formatBossDisplayName,
@@ -232,11 +234,21 @@ assert.equal(
 );
 console.log("✔ Boss & skill formatting helpers verified successfully!");
 
-console.log("\n=== 4. Testing Ranking Groups Metadata ===");
+console.log("\n=== 4. Testing Ranking Groups Metadata & Target Localization ===");
 assert.equal(getRankingGroupLabel("crisis", "zh"), "危境再现");
 assert.equal(getRankingGroupLabel("crisis", "en"), "Crisis Replay");
+assert.equal(getRankingGroupLabel("shadowPhase1", "en"), "Umbral Monument: Phase 1");
+assert.equal(getRankingGroupLabel("shadowPhase1", "zh"), "影拓丰碑1期");
 assert.equal(getRankingGroupNote("crisis", "zh"), "收录 6 个危境再现首领");
 assert.equal(getRankingGroupNote("crisis", "en"), "Includes 6 Crisis Replay Bosses");
-console.log("✔ Ranking groups metadata bilingual helpers verified successfully!");
+
+// Dungeon and Target localization
+assert.equal(getLocalizedDungeonName("影拓丰碑1期", "en"), "Umbral Monument: Phase 1");
+assert.equal(getLocalizedDungeonName("影拓丰碑1期 · 灼痛疤痕", "en"), "Umbral Monument: Phase 1 · Searing Scars");
+assert.equal(getLocalizedTargetName("余烬", "en"), "Ember");
+assert.equal(getLocalizedTargetName("精锐行刑人", "en"), "Elite Executioner");
+assert.equal(getLocalizedTargetName("Ember", "zh"), "余烬");
+assert.equal(getLocalizedTargetName("Elite Executioner", "zh"), "精锐行刑人");
+console.log("✔ Ranking groups and target localization helpers verified successfully!");
 
 console.log("\n=== ALL INTERNATIONALIZATION TESTS PASSED! ===");

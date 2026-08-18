@@ -23,6 +23,7 @@ import {
   TIMELINE_ZERO_SOURCE_LABELS,
   getLocalizedBuffName,
   getLocalizedCharacterName,
+  getLocalizedTargetName,
   getLocalizedDungeonName,
   getLocalizedWeaponName,
   getLocalizedEquipSuitName,
@@ -525,7 +526,7 @@ function normalizeTimelineName(value: string | null | undefined, fallback: strin
 
 function formatNameList(names: string[], fallback: string, locale: Locale = "zh") {
   const normalized = Array.from(
-    new Set(names.map((name) => getLocalizedCharacterName(name.trim(), locale)).filter(Boolean)),
+    new Set(names.map((name) => getLocalizedTargetName(name.trim(), locale)).filter(Boolean)),
   ).sort((left, right) => left.localeCompare(right, locale === "zh" ? "zh-CN" : "en-US"));
   if (normalized.length === 0) {
     return fallback;
@@ -606,7 +607,7 @@ function getTimelineSkillHitTitle(
 ) {
   const unknownLabel = locale === "en" ? "Unknown" : "未知";
   const sourceName = getLocalizedCharacterName(event.sourceCharacterName, locale) || unknownLabel;
-  const targetName = getLocalizedCharacterName(event.targetCharacterName, locale) || unknownLabel;
+  const targetName = getLocalizedTargetName(event.targetCharacterName, locale) || unknownLabel;
   const sourceTarget = `${sourceName} -> ${targetName}`;
   const damageText = (event.value ?? 0).toLocaleString(locale === "zh" ? "zh-CN" : "en-US");
   const poiseValue = event.poiseDamage?.value;
@@ -1104,7 +1105,9 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
           if (!canMerge || !current) {
             displayEvents.push({
               ...event,
+              rawEventName: event.eventName,
               eventName: displayName,
+              preferredName,
               skillCategory,
               skillCategoryLabel,
               value: event.value ?? 0,
@@ -2555,11 +2558,16 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
                                 setHoveredTimelineNodeKey(null);
                                 setSkillHover(null);
                               }}
-                              onMouseMove={(mouseEvent) =>
+                              onMouseMove={(mouseEvent) => {
+                                const preferred = (event as typeof event & { preferredName?: string }).preferredName;
+                                const skillTitle =
+                                  preferred && !["BS", "ULT", "Combo", "Heavy", "Normal", "重击", "普攻"].includes(preferred)
+                                    ? preferred
+                                    : event.skillCategoryLabel;
                                 setSkillHover({
                                   x: mouseEvent.clientX,
                                   y: mouseEvent.clientY,
-                                  name: event.eventName,
+                                  name: skillTitle,
                                   categoryLabel: event.skillCategoryLabel,
                                   tsMsFromStart: event.tsMsFromStart,
                                   totalValue: event.value ?? null,
@@ -2569,11 +2577,11 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
                                     0,
                                   ),
                                   damageElement: getTimelineEventDamageElement(event),
-                                  sourceName: event.sourceCharacterName ?? (locale === "en" ? "Unknown" : "未知"),
-                                  targetName: event.targetCharacterName ?? null,
+                                  sourceName: getLocalizedCharacterName(event.sourceCharacterName, locale) || (locale === "en" ? "Unknown" : "未知"),
+                                  targetName: event.targetCharacterName ? getLocalizedTargetName(event.targetCharacterName, locale) : null,
                                   eventKey: event.eventKey ?? null,
-                                })
-                              }
+                                });
+                              }}
                             >
                               {event.nodeLabel ? <div className="timeline-node-title">{event.nodeLabel}</div> : null}
                             </div>
@@ -2917,14 +2925,21 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
         >
           <strong>{skillHover.name}</strong>
           <span>
-            {skillHover.name === skillHover.categoryLabel ? "" : `${skillHover.categoryLabel} · `}
-            {formatTimelineOffsetMs(skillHover.tsMsFromStart)}
+            {skillHover.name.toLowerCase() === skillHover.categoryLabel.toLowerCase()
+              ? formatTimelineOffsetMs(skillHover.tsMsFromStart)
+              : `${skillHover.categoryLabel} · ${formatTimelineOffsetMs(skillHover.tsMsFromStart)}`}
           </span>
           <span>
             {skillHover.totalValue === null && skillHover.maxHit === 0
               ? (locale === "en" ? "0 Damage Cast" : "零伤害施放")
-              : `${locale === "en" ? "Total Dmg " : "总伤 "}${Math.round(skillHover.totalValue ?? 0).toLocaleString()} · ${skillHover.hitCount} hit${
-                  skillHover.hitCount > 1 ? ` · ${locale === "en" ? "Max Hit " : "最大单跳 "}${Math.round(skillHover.maxHit).toLocaleString()}` : ""
+              : `${locale === "en" ? "Total Dmg " : "总伤害 "}${Math.round(skillHover.totalValue ?? 0).toLocaleString(locale === "zh" ? "zh-CN" : "en-US")} · ${skillHover.hitCount} ${
+                  locale === "en"
+                    ? (skillHover.hitCount > 1 ? "hits" : "hit")
+                    : "次命中"
+                }${
+                  skillHover.hitCount > 1
+                    ? ` · ${locale === "en" ? "Max Hit " : "最大单跳 "}${Math.round(skillHover.maxHit).toLocaleString(locale === "zh" ? "zh-CN" : "en-US")}`
+                    : ""
                 }`}
           </span>
           {skillHover.damageElement ? (
@@ -2937,7 +2952,9 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
             {skillHover.sourceName}
             {skillHover.targetName ? ` → ${skillHover.targetName}` : ""}
           </span>
-          {skillHover.eventKey ? <span className="timeline-skill-tooltip-key">{skillHover.eventKey}</span> : null}
+          {skillHover.eventKey ? (
+            <span className="timeline-skill-tooltip-key">{skillHover.eventKey}</span>
+          ) : null}
         </div>
       ) : null}
       {buffHover ? (
