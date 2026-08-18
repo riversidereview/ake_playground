@@ -666,7 +666,7 @@ function getTimelineSkillCompactLabel(
     case "ultimate":
       return "ULT";
     default:
-      return fallbackLabel.slice(0, 3) || (locale === "en" ? "Oth" : "其");
+      return locale === "en" ? "Other" : (fallbackLabel || "其它");
   }
 }
 
@@ -1520,7 +1520,8 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
         const lastHitTs = event.hits.length > 0 ? event.hits[event.hits.length - 1].tsMsFromStart : event.tsMsFromStart;
         const hitSpanPx =
           (Math.min(Math.max(lastHitTs / Math.max(detail.battle.durationMs, 1), 0), 1) * timelineBoardWidth) - firstHitPx;
-        const standardWidthPx = event.skillCategory === "combo" ? 54 : 48;
+        const standardWidthPx =
+          event.skillCategory === "combo" ? 54 : event.skillCategory === "other" || event.skillCategory === "heavy" ? 52 : 48;
         let nodeWidthPx = Math.min(
           Math.max(hitSpanPx + 6, standardWidthPx),
           availableWidthPx,
