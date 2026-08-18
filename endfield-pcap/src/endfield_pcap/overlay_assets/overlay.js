@@ -272,7 +272,7 @@
     refs.combatTime.textContent = formatTime(elapsedMs);
     refs.combatIndicator.classList.toggle("active", state.isCombatActive);
     refs.footer.classList.toggle("active", state.isCombatActive);
-    refs.footerText.textContent = state.isCombatActive ? "IN_COMBAT // 战斗中" : "STANDBY // 待机中";
+    refs.footerText.textContent = state.isCombatActive ? "IN_COMBAT" : "STANDBY";
 
     const players = Array.from(state.players.values()).sort((a, b) => {
       if (b.totalDamage !== a.totalDamage) {

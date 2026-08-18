@@ -29,7 +29,7 @@ _OVERLAY_MUTEX = None
 
 def _acquire_single_instance_mutex() -> bool:
     global _OVERLAY_MUTEX
-    if os.name != "nt":
+    if os.name != "nt" or "PYTEST_CURRENT_TEST" in os.environ or "pytest" in sys.modules:
         return True
     kernel32 = ct.windll.kernel32
     mutex = kernel32.CreateMutexW(None, False, "Global\\EndfieldPCAPOverlaySingleton")
@@ -155,7 +155,7 @@ BAR_COLORS = [
 ALPHA     = 0.85
 
 # ── name → friendly label ──
-CHAR_LABELS = {
+CHAR_LABELS_ZH = {
     "chen":      "陈千语",
     "endminm":   "管理员",
     "endminf":   "管理员",
@@ -188,6 +188,106 @@ CHAR_LABELS = {
     "camille":   "卡缪",
     "lizhiyan":  "诀",
 }
+
+CHAR_LABELS_EN = {
+    "chen":      "Chen Qianyu",
+    "endminm":   "Endministrator",
+    "endminf":   "Endministrator",
+    "endmin":    "Endministrator",
+    "wulfa":     "Rossi",
+    "tangtang":  "Tangtang",
+    "pelica":    "Perlica",
+    "karin":     "Akekuri",
+    "laevat":    "Laevatain",
+    "ardelia":   "Ardelia",
+    "antal":     "Antal",
+    "wolfgd":    "Wulfgard",
+    "lastrite":  "Last Rite",
+    "azrila":    "Ember",
+    "pograni":   "Pogranichnik",
+    "seraph":    "Xaihi",
+    "ikut":      "Arclight",
+    "avywen":    "Avywenna",
+    "deepfin":   "Alesh",
+    "aurora":    "Snowshine",
+    "whiten":    "Estella",
+    "dapan":     "Da Pan",
+    "bounda":    "Fluorite",
+    "meurs":     "Catcher",
+    "lifeng":    "Lifeng",
+    "zhuangfy":  "Zhuang Fangyi",
+    "yvonne":    "Yvonne",
+    "aglina":    "Gilberta",
+    "mifu":      "Mifu",
+    "camille":   "Camille",
+    "lizhiyan":  "Arcane",
+}
+
+CHAR_LABELS = CHAR_LABELS_ZH
+
+ZH_TO_EN_CHAR_NAMES = {
+    "管理员": "Endministrator",
+    "男管理员": "Endministrator",
+    "女管理员": "Endministrator",
+    "佩丽卡": "Perlica",
+    "陈千语": "Chen Qianyu",
+    "狼卫": "Wulfgard",
+    "弧光": "Arclight",
+    "余烬": "Ember",
+    "赛希": "Xaihi",
+    "艾维文娜": "Avywenna",
+    "洁尔佩塔": "Gilberta",
+    "昼雪": "Snowshine",
+    "黎风": "Lifeng",
+    "莱万汀": "Laevatain",
+    "伊冯": "Yvonne",
+    "大潘": "Da Pan",
+    "秋栗": "Akekuri",
+    "卡契尔": "Catcher",
+    "埃特拉": "Estella",
+    "萤石": "Fluorite",
+    "安塔尔": "Antal",
+    "阿列什": "Alesh",
+    "艾尔黛拉": "Ardelia",
+    "别礼": "Last Rite",
+    "汤汤": "Tangtang",
+    "洛茜": "Rossi",
+    "骏卫": "Pogranichnik",
+    "庄方宜": "Zhuang Fangyi",
+    "弭弗": "Mifu",
+    "诀": "Arcane",
+    "卡缪": "Camille",
+}
+
+DUNGEON_NAMES_EN = {
+    "危境再现": "Crisis Replay",
+    "危境碎片": "Crisis Fragments",
+    "危机合约": "Contingency Contract",
+    "战争回响": "Echoes of War",
+    "危境再现·罗丹": "Crisis Replay: Rhodagn",
+    "危境再现：罗丹": "Crisis Replay: Rhodagn",
+    "危境再现·三位一体": "Crisis Replay: Triaggelos",
+    "危境再现：三位一体": "Crisis Replay: Triaggelos",
+    "危境再现·白垩界卫": "Crisis Replay: Marble Aggelomoirai",
+    "危境再现：白垩界卫": "Crisis Replay: Marble Aggelomoirai",
+    "危境再现·阮一": "Crisis Replay: Ruan Yi",
+    "危境再现：阮一": "Crisis Replay: Ruan Yi",
+    "危境再现·聂菲斯": "Crisis Replay: Nefarith",
+    "危境再现：聂菲斯": "Crisis Replay: Nefarith",
+    "危境再现·阿莱克琉斯": "Crisis Replay: Alleikhreos",
+    "危境再现：阿莱克琉斯": "Crisis Replay: Alleikhreos",
+    "巨山犼兽": "Craghowler",
+    "蚀影噪雷": "Blitzcrash Blightshade",
+    "未知场地": "Unknown Encounter",
+}
+
+
+def localize_dungeon_name(name: str, locale: str = "en") -> str:
+    if not name:
+        return "未知场地" if locale == "zh" else "Unknown Encounter"
+    if locale == "zh":
+        return name
+    return DUNGEON_NAMES_EN.get(name, name)
 
 # ── character → damage element ──
 CHAR_ELEMENTS = {
@@ -1188,11 +1288,11 @@ def format_elapsed(seconds):
 
 
 SERVICE_STATE_LABELS = {
-    "waiting_restart": "状态：请重启游戏",
-    "waiting_game": "状态：等待游戏启动",
-    "waiting_connection": "状态：等待连接",
-    "waiting_handshake": "状态：等待登录握手",
-    "live": "状态：已连接",
+    "waiting_restart": {"zh": "状态：请重启游戏", "en": "Status: Restart Game Required"},
+    "waiting_game": {"zh": "状态：等待游戏启动", "en": "Status: Waiting for Game"},
+    "waiting_connection": {"zh": "状态：等待连接", "en": "Status: Waiting for Connection"},
+    "waiting_handshake": {"zh": "状态：等待登录握手", "en": "Status: Waiting for Handshake"},
+    "live": {"zh": "状态：已连接", "en": "Status: Connected"},
 }
 
 
@@ -1214,23 +1314,34 @@ def read_service_status():
         return None
 
 
-def service_status_text(payload):
+def service_status_text(payload, locale: str = "en"):
+    loc = "zh" if str(locale).lower().startswith("zh") else "en"
+    prefix = "状态：" if loc == "zh" else "Status: "
+    err_prefix = "状态：采集异常" if loc == "zh" else "Status: Capture Error"
+    unknown_err = "未知错误" if loc == "zh" else "Unknown Error"
+
     fatal_error = payload.get("fatal_error")
     if isinstance(fatal_error, dict):
-        error_type = str(fatal_error.get("type") or "未知错误")
-        return f"状态：采集异常（{error_type}）"
+        error_type = str(fatal_error.get("type") or unknown_err)
+        return f"{err_prefix}（{error_type}）"
     state = str(payload.get("state") or "")
-    return SERVICE_STATE_LABELS.get(state, f"状态：{state or '-'}")
+    if state in SERVICE_STATE_LABELS:
+        return SERVICE_STATE_LABELS[state].get(loc, SERVICE_STATE_LABELS[state]["en"])
+    return f"{prefix}{state or '-'}"
 
 
-def service_metrics_text(payload):
+def service_metrics_text(payload, locale: str = "en"):
+    loc = "zh" if str(locale).lower().startswith("zh") else "en"
+    err_label = "错误：" if loc == "zh" else "Error: "
+    unexp_exit = "采集服务意外退出" if loc == "zh" else "Capture service exited unexpectedly"
+
     fatal_error = payload.get("fatal_error")
     if isinstance(fatal_error, dict):
         message = " ".join(str(fatal_error.get("message") or "").split())
-        return f"错误：{message[:72] or '采集服务意外退出'}"
+        return f"{err_label}{message[:72] or unexp_exit}"
     metrics = payload.get("metrics") if isinstance(payload, dict) else None
     if not isinstance(metrics, dict):
-        return "包:0 解:0"
+        return "包:0 解:0" if loc == "zh" else "Pkt:0 Msg:0"
     packets = int(metrics.get("packets_seen") or 0)
     messages = int(metrics.get("messages_decoded") or 0)
     events = int(metrics.get("outbound_events_emitted") or 0)
@@ -1250,7 +1361,9 @@ def service_metrics_text(payload):
         client_ok = "C+" if session.get("client_login_done") else "C-"
         server_ok = "S+" if session.get("server_login_done") else "S-"
         handshake = f" {client_ok}{server_ok}"
-    return f"包:{packets} 解:{messages} 事:{events}{suffix}{handshake}"
+    if loc == "zh":
+        return f"包:{packets} 解:{messages} 事:{events}{suffix}{handshake}"
+    return f"Pkt:{packets} Msg:{messages} Evt:{events}{suffix}{handshake}"
 
 
 def get_damage_element(skill_name):
@@ -2172,14 +2285,23 @@ def classify_bb_effects(buff_id, bb_pairs):
     return effects
 
 
-def friendly_name(raw):
+def friendly_name(raw, locale=None):
     if not raw or raw == "?":
         return raw
+    loc = "zh" if str(locale or _get_overlay_locale()).lower().startswith("zh") else "en"
     parts = raw.split("_")
     short = parts[-1] if parts else raw
-    label = CHAR_LABELS.get(short.lower())
+    labels = CHAR_LABELS_ZH if loc == "zh" else CHAR_LABELS_EN
+    label = labels.get(short.lower())
     if label:
         return label
+    char_key = extract_char_key(raw)
+    if char_key:
+        short_k = char_key.split("_")[-1].lower()
+        if short_k in labels:
+            return labels[short_k]
+    if loc != "zh" and raw in ZH_TO_EN_CHAR_NAMES:
+        return ZH_TO_EN_CHAR_NAMES[raw]
     return short
 
 
@@ -2191,17 +2313,18 @@ def crit_text(n, c):
 
 RE_ATTACK_N = re.compile(r'attack(\d+)')
 
-def classify_skill(skill_raw):
+def classify_skill(skill_raw, locale=None):
+    loc = "zh" if str(locale or _get_overlay_locale()).lower().startswith("zh") else "en"
     s = skill_raw.lower()
     if "combo" in s:
-        return "连携技"
+        return "连携技" if loc == "zh" else "Combo Skill"
     if "ultimate" in s:
-        return "终结技"
+        return "终结技" if loc == "zh" else "Ultimate"
     if "normal_skill" in s:
-        return "战技"
+        return "战技" if loc == "zh" else "Battle Skill"
     m = RE_ATTACK_N.search(s)
     if m:
-        return f"普攻{m.group(1)}"
+        return f"普攻{m.group(1)}" if loc == "zh" else f"Basic ATK {m.group(1)}"
     return None
 
 
@@ -4242,7 +4365,42 @@ class LogTailer(threading.Thread):
         """Return DPS stats from parser_core only."""
         live_rows = self._live_core_rows()
         if live_rows is not None:
-            stats, _rdps, _repoMIN_WINDOW_SIZE = 48
+            stats, _rdps, _report = live_rows
+            items = list(stats.values())
+            items.sort(
+                key=lambda x: (x.dps, x.total_dmg, x.max_hit, x.last_hit_t),
+                reverse=True,
+            )
+            return items
+        return []
+
+    def get_sorted_rdps(self):
+        live_rows = self._live_core_rows()
+        if live_rows is not None:
+            _stats, rdps, _report = live_rows
+            items = list(rdps.values())
+            items.sort(
+                key=lambda x: (x.rdps, x.total_rd, x.max_rd, x.last_t),
+                reverse=True,
+            )
+            return items
+        return []
+
+    def get_events_snapshot(self):
+        with self.lock:
+            events = list(self.hit_events)
+            squad = self._effective_roster()
+        if squad:
+            return [e for e in events if e[1] in squad]
+        return list(events)
+
+    def stop(self):
+        self._stop.set()
+
+
+BTN_ACTIVE_FG = "#ffffff"
+BTN_INACTIVE_FG = "#555555"
+MIN_WINDOW_SIZE = 48
 MIN_ICON_SIZE = 40
 MIN_TRANSPARENT_BG = "#010203"
 
@@ -4260,6 +4418,12 @@ _OVERLAY_I18N = {
         "col_rd": "rD",
         "col_share": "占比",
         "disconnected": "采集已断开",
+        "unknown_stage": "未知场地",
+        "rdps_unconfirmed": "rDPS未确认",
+        "no_logs": "当前没有可导出的战斗日志。",
+        "export_title": "导出当前 trace 全部战斗原始日志",
+        "export_fail": "导出失败：",
+        "export_success": "已导出 {battle_count} 场战斗、{hit_count} 条 hit 对应的原始日志：\n{path}\n\n当前队伍 loadout 摘要与完整性说明书已内嵌到该 `.log` 文件末尾。",
     },
     "en": {
         "title": "Endfield DPS Meter",
@@ -4274,13 +4438,34 @@ _OVERLAY_I18N = {
         "col_rd": "rD",
         "col_share": "Share",
         "disconnected": "Capture Disconnected",
+        "unknown_stage": "Unknown Encounter",
+        "rdps_unconfirmed": "rDPS Unconfirmed",
+        "no_logs": "No combat logs available to export.",
+        "export_title": "Export All Combat Raw Logs from Current Trace",
+        "export_fail": "Export failed: ",
+        "export_success": "Exported {battle_count} battles and {hit_count} hits to raw log:\n{path}\n\nCurrent squad loadout summary and integrity specifications have been embedded at the end of the .log file.",
     },
 }
 
 
 def _get_overlay_locale() -> str:
     locale = os.environ.get("ENDFIELD_LOCALE") or os.environ.get("LANG") or ""
-    return "en" if locale.lower().startswith("en") else "zh"
+    if locale:
+        return "zh" if locale.lower().startswith("zh") else "en"
+    try:
+        appdata_root = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~/.endfield-pcap")
+        settings_path = os.path.join(appdata_root, "EndfieldPCAP", "settings.json")
+        if os.path.isfile(settings_path):
+            with open(settings_path, encoding="utf-8") as f:
+                data = json.load(f)
+                lang = str(data.get("language") or "").strip().lower()
+                if lang.startswith("zh"):
+                    return "zh"
+                if lang.startswith("en"):
+                    return "en"
+    except Exception:
+        pass
+    return "en"
 
 
 def _find_uploader_logo_path():
@@ -4573,7 +4758,7 @@ class OverlayApp:
     def _export_battle_log(self):
         lines, meta = read_all_battle_log_export()
         if not lines or not meta:
-            messagebox.showinfo("Endfield DPS", "当前没有可导出的战斗日志。", parent=self.root)
+            messagebox.showinfo(self.i18n["title"], self.i18n.get("no_logs", "No combat logs available to export."), parent=self.root)
             return
 
         loadout_context_lines = build_export_loadout_context(preferred_lines=lines)
@@ -4584,7 +4769,7 @@ class OverlayApp:
         )
         out_path = filedialog.asksaveasfilename(
             parent=self.root,
-            title="导出当前 trace 全部战斗原始日志",
+            title=self.i18n.get("export_title", "Export All Combat Raw Logs from Current Trace"),
             defaultextension=".log",
             initialfile=default_name,
             filetypes=[
@@ -4612,18 +4797,19 @@ class OverlayApp:
             )
         except OSError as exc:
             messagebox.showerror(
-                "Endfield DPS",
-                f"导出失败：{exc}",
+                self.i18n["title"],
+                f"{self.i18n.get('export_fail', 'Export failed: ')}{exc}",
                 parent=self.root,
             )
             return
 
+        msg = self.i18n.get(
+            "export_success",
+            "Exported {battle_count} battles and {hit_count} hits to raw log:\n{path}\n\nCurrent squad loadout summary and integrity specifications have been embedded at the end of the .log file.",
+        ).format(battle_count=meta.get("battle_count", 0), hit_count=meta.get("hit_count", 0), path=out_path)
         messagebox.showinfo(
-            "Endfield DPS",
-            (
-                f"已导出 {meta['battle_count']} 场战斗、{meta['hit_count']} 条 hit 对应的原始日志：\n{out_path}\n\n"
-                "当前队伍 loadout 摘要与完整性说明书已内嵌到该 `.log` 文件末尾。"
-            ),
+            self.i18n["title"],
+            msg,
             parent=self.root,
         )
 
@@ -4654,9 +4840,11 @@ class OverlayApp:
         if live_rows is not None:
             live_stats, live_rdps, report = live_rows
             battle = report.get("battle") or {}
-            dungeon_name = str(battle.get("dungeon_name") or "未知场地")
+            raw_dungeon = str(battle.get("dungeon_name") or self.i18n.get("unknown_stage", "未知场地"))
+            dungeon_name = localize_dungeon_name(raw_dungeon, self.locale)
             if battle.get("rdps_available") is False:
-                dungeon_name = f"{dungeon_name} / rDPS未确认"
+                rdps_note = self.i18n.get("rdps_unconfirmed", "rDPS未确认")
+                dungeon_name = f"{dungeon_name} / {rdps_note}"
             status = {
                 "dungeonName": dungeon_name,
                 "elapsed": max(float(battle.get("duration_ms") or 0) / 1000.0, 0.0),
@@ -4678,6 +4866,8 @@ class OverlayApp:
             rdps_available = self.mode != "RDPS" or bool(battle.get("rdps_available", True))
         else:
             status = self.tailer.get_status_snapshot()
+            raw_dungeon = str(status.get("dungeonName") or self.i18n.get("unknown_stage", "未知场地"))
+            status["dungeonName"] = localize_dungeon_name(raw_dungeon, self.locale)
             if self.mode == "DPS":
                 stats = self.tailer.get_sorted()
             else:
@@ -4686,8 +4876,8 @@ class OverlayApp:
             rdps_available = self.mode != "RDPS" or self.tailer.live_rdps_available()
         stats = stats[:4]
         if has_fatal_error:
-            self.stage_label.config(text=service_status_text(service_status))
-            self.time_label.config(text=service_metrics_text(service_status))
+            self.stage_label.config(text=service_status_text(service_status, self.locale))
+            self.time_label.config(text=service_metrics_text(service_status, self.locale))
             if not self._fatal_shutdown_scheduled:
                 self._fatal_shutdown_scheduled = True
                 # Give the overlay one render cycle to show the real cause,
@@ -4696,17 +4886,17 @@ class OverlayApp:
         elif (
             service_status is not None
             and not stats
-            and status.get("dungeonName") in {None, "", "-", "未知场地"}
+            and status.get("dungeonName") in {None, "", "-", "未知场地", "Unknown Encounter"}
         ):
-            self.stage_label.config(text=service_status_text(service_status))
-            self.time_label.config(text=service_metrics_text(service_status))
+            self.stage_label.config(text=service_status_text(service_status, self.locale))
+            self.time_label.config(text=service_metrics_text(service_status, self.locale))
         else:
             stage_text = f"{self.i18n['stage_prefix']}{status['dungeonName']}"
             if STATUS_FILE and service_state != "live":
                 if service_status is None:
                     state_note = self.i18n["disconnected"]
                 else:
-                    state_note = service_status_text(service_status).removeprefix("状态：").removeprefix("Status: ")
+                    state_note = service_status_text(service_status, self.locale).removeprefix("状态：").removeprefix("Status: ")
                 stage_text = f"{stage_text} · {state_note}"
             self.stage_label.config(text=stage_text)
             self.time_label.config(text=f"{self.i18n['time_prefix']}{format_elapsed(status['elapsed'])}")
@@ -4726,7 +4916,7 @@ class OverlayApp:
                 color = display_colors.get(s.name, stable_bar_color(s.name))
                 cvs.itemconfig(bar_id, fill=color)
                 cvs.coords(bar_id, 0, 0, bar_w, 24)
-                cvs.itemconfig(name_id, text=friendly_name(s.name))
+                cvs.itemconfig(name_id, text=friendly_name(s.name, self.locale))
                 cvs.itemconfig(dps_id, text=f"{s.dps:.1f}")
                 cvs.itemconfig(crit_id, text=crit_text(s.crit_n, s.crit_c))
                 cvs.itemconfig(total_id, text=f"{s.total_dmg:.0f}" if s.total_dmg > 0 else "0")
@@ -4747,7 +4937,7 @@ class OverlayApp:
                 dps_stats = crit_lookup.get(s.name) if crit_lookup else None
                 cn, cc = (dps_stats.crit_n, dps_stats.crit_c) if dps_stats else (0, 0)
                 suffix = "" if rdps_available else " *"
-                cvs.itemconfig(name_id, text=f"{friendly_name(s.name)}{suffix}")
+                cvs.itemconfig(name_id, text=f"{friendly_name(s.name, self.locale)}{suffix}")
                 cvs.itemconfig(dps_id, text=f"{s.rdps:.1f}")
                 cvs.itemconfig(crit_id, text=crit_text(cn, cc))
                 cvs.itemconfig(total_id, text=f"{s.total_rd:.0f}" if s.total_rd > 0 else "0")

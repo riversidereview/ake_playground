@@ -78,7 +78,7 @@ export function LoginForm() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (mode === "register" && password.length < 6) {
-      setMessage("密码长度不能少于 6 位");
+      setMessage(t.auth.passwordMinLength);
       return;
     }
     setLoading(true);
@@ -110,7 +110,7 @@ export function LoginForm() {
             errMsg = data.detail;
           } else if (Array.isArray(data.detail)) {
             errMsg = data.detail
-              .map((d) => (d.msg ? (d.msg.includes("at least 6") ? "密码至少需要 6 个字符" : d.msg) : JSON.stringify(d)))
+              .map((d) => (d.msg ? (d.msg.includes("at least 6") ? t.auth.passwordMinLength : d.msg) : JSON.stringify(d)))
               .join("；");
           }
         }
@@ -160,19 +160,19 @@ export function LoginForm() {
       <form className="panel-inset auth-form" onSubmit={handleSubmit}>
         {mode === "login" ? (
           <label className="field-stack">
-            <span>{t.auth.emailLabel} / 用户名</span>
+            <span>{t.auth.accountOrEmailLabel}</span>
             <input
               autoComplete="username"
               className="field-input"
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="请输入用户名或邮箱"
+              placeholder={t.auth.accountOrEmailPlaceholder}
               type="text"
               value={email}
             />
           </label>
         ) : (
           <label className="field-stack">
-            <span>{t.auth.nicknameLabel} (用户名)</span>
+            <span>{t.auth.nicknameLabel} {t.auth.usernameSuffix}</span>
             <input
               autoComplete="nickname"
               className="field-input"
@@ -189,7 +189,7 @@ export function LoginForm() {
             autoComplete={mode === "login" ? "current-password" : "new-password"}
             className="field-input"
             onChange={(event) => setPassword(event.target.value)}
-            placeholder={mode === "register" ? "请输入密码（至少 6 位）" : t.auth.passwordPlaceholder}
+            placeholder={mode === "register" ? t.auth.passwordRegisterPlaceholder : t.auth.passwordPlaceholder}
             type="password"
             value={password}
           />

@@ -24,6 +24,7 @@ from PySide6.QtGui import QColor, QGuiApplication
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QApplication, QWidget
 
+from .i18n import tr
 from .models import OverlayEntry, OverlayGeometry, OverlaySourceType
 from .runtime_paths import bundle_root
 from .service import DamageLogService, ServiceConfig
@@ -519,7 +520,7 @@ def run_with_overlay(service_config: ServiceConfig) -> int:
         [
             OverlayEntry(
                 id="builtin-overlay",
-                name="伤害统计",
+                name=tr("overlay_builtin_damage"),
                 source_type=OverlaySourceType.BUILTIN,
                 source_value="damage",
                 enabled=True,

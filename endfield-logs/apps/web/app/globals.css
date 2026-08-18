@@ -3556,13 +3556,16 @@ button:disabled {
 }
 
 .auth-layout {
-  display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding: 32px 16px 80px;
 }
 
 .auth-panel {
-  max-width: 620px;
+  width: 100%;
+  max-width: 480px;
 }
 
 .auth-steps {

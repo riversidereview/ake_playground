@@ -92,7 +92,7 @@ class ParseTraceWorker(QObject):
         try:
             candidates: list[BattleCandidate] = []
 
-            self.progress.emit("正在本地拆分 trace 并解析 battle…", None, None, "正在解析 battle")
+            self.progress.emit(tr("worker_splitting_trace"), None, None, tr("worker_parsing_title"))
             if self.known_fingerprints or self.include_source_metadata:
                 payloads = build_battle_upload_payloads_from_log(
                     self.log_path,
@@ -105,15 +105,15 @@ class ParseTraceWorker(QObject):
                 payloads = build_battle_upload_payloads_from_log(self.log_path)
 
             total = max(1, len(payloads))
-            self.progress.emit(f"已拆出 {len(payloads)} 场 battle，正在整理候选列表…", 0, total, "正在整理候选")
+            self.progress.emit(tr("worker_extracted_battles", count=len(payloads)), 0, total, tr("worker_organizing_title"))
             for index, payload in enumerate(payloads, start=1):
                 source_battle_index = int(payload.pop("_sourceBattleIndex", index) or index)
                 fingerprint = str(payload.get("battle", {}).get("battleFingerprint") or "")
                 self.progress.emit(
-                    f"正在整理第 {index}/{len(payloads)} 场 battle…",
+                    tr("worker_organizing_item", index=index, total=len(payloads)),
                     index - 1,
                     len(payloads),
-                    f"正在整理候选（{index}/{len(payloads)}）",
+                    tr("worker_organizing_progress", index=index, total=len(payloads)),
                 )
                 candidates.append(
                     BattleCandidate(
@@ -131,14 +131,14 @@ class ParseTraceWorker(QObject):
                 )
             self.completed.emit(candidates)
         except Exception as exc:  # noqa: BLE001
-            self.failed.emit(f"解析失败：{exc}", None)
+            self.failed.emit(tr("worker_parse_failed", error=str(exc)), None)
 
 
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setObjectName("mainWindow")
-        self.setWindowTitle("Endfield Logs 上传器")
+        self.setWindowTitle(tr("app_title"))
         self.setWindowIcon(app_icon())
         self.resize(1080, 720)
         self.setMinimumSize(980, 660)
@@ -285,13 +285,13 @@ class MainWindow(QMainWindow):
         def _run() -> None:
             if self.store.session is None:
                 self._show_login()
-                self.login_view.set_message("当前还未登录，无法直接导入启动日志。", error=True)
+                self.login_view.set_message(tr("msg_not_logged_in_cannot_import"), error=True)
                 return
 
             resolved_path = str(Path(file_path).expanduser())
             if not Path(resolved_path).exists():
-                self.trace_import_view.set_message(f"启动日志不存在：{resolved_path}", error=True)
-                self._refresh_status_bar("启动日志不存在")
+                self.trace_import_view.set_message(tr("msg_startup_log_missing", path=resolved_path), error=True)
+                self._refresh_status_bar(tr("phase_startup_log_missing"))
                 self._show_trace_import()
                 return
 
@@ -370,8 +370,8 @@ class MainWindow(QMainWindow):
         self.hide()
         if not self._tray_hint_shown:
             self._tray_icon.showMessage(
-                "Endfield Logs 上传器",
-                "上传器已最小化到系统托盘。",
+                tr("app_title"),
+                tr("tray_show"),
                 QSystemTrayIcon.MessageIcon.Information,
                 1800,
             )
@@ -402,7 +402,7 @@ class MainWindow(QMainWindow):
         self.api_client.set_session_token(session_token)
         if not api_available:
             self._show_login()
-            self.login_view.set_message("当前无法连接 API，暂时不能验证本地登录状态。", error=True)
+            self.login_view.set_message(tr("msg_cannot_connect_api_auth"), error=True)
             return
 
         try:
@@ -410,14 +410,14 @@ class MainWindow(QMainWindow):
         except ApiClientError as exc:
             self.api_client.set_session_token(None)
             self._show_login()
-            self.login_view.set_message(f"无法验证本地登录状态：{exc}", error=True)
+            self.login_view.set_message(tr("msg_auth_verify_failed", error=str(exc)), error=True)
             return
 
         if not response.get("authenticated"):
             self.session_store.clear()
             self.api_client.set_session_token(None)
             self._show_login()
-            self.login_view.set_message("登录已失效，请重新登录。", error=True)
+            self.login_view.set_message(tr("msg_session_expired"), error=True)
             return
 
         user = response.get("user") or {}
@@ -436,11 +436,11 @@ class MainWindow(QMainWindow):
             }
         )
         self._show_trace_import()
-        self.trace_import_view.set_message(f"已登录：{self.store.session.nickname}")
-        self._refresh_status_bar("等待导入日志")
+        self.trace_import_view.set_message(tr("msg_logged_in", nickname=self.store.session.nickname))
+        self._refresh_status_bar(tr("phase_waiting_import"))
         if self._managed_log_path:
             self._show_battle_upload()
-            self.battle_upload_view.set_message("已登录，正在监听自动归档日志。")
+            self.battle_upload_view.set_message(tr("msg_logged_in_listening", nickname=self.store.session.nickname))
             QTimer.singleShot(0, self._maybe_refresh_managed_log)
 
     def _show_login(self) -> None:
@@ -616,7 +616,7 @@ class MainWindow(QMainWindow):
         nickname = self.store.session.nickname if self.store.session else ""
         if self._managed_log_path:
             self._show_battle_upload()
-            message = f"已登录：{nickname}，正在监听自动归档日志。"
+            message = tr("msg_logged_in_listening", nickname=nickname)
             if persistence_warning:
                 message = f"{message} {persistence_warning}"
             self.battle_upload_view.set_message(message)
@@ -624,23 +624,23 @@ class MainWindow(QMainWindow):
             return
 
         self._show_trace_import()
-        message = f"已登录：{nickname}"
+        message = tr("msg_logged_in", nickname=nickname)
         if persistence_warning:
-            message = f"{message}。{persistence_warning}"
+            message = f"{message} {persistence_warning}"
         self.trace_import_view.set_message(message)
 
     def _handle_login(self, email: str, password: str) -> None:
         account = email.strip()
         if not account:
-            self.login_view.set_message("请输入用户名或邮箱。", error=True)
+            self.login_view.set_message(tr("field_account_placeholder"), error=True)
             return
         if not password:
-            self.login_view.set_message("请输入密码。", error=True)
+            self.login_view.set_message(tr("field_password"), error=True)
             return
 
         self._set_busy(True)
         try:
-            self._refresh_status_bar("正在登录")
+            self._refresh_status_bar(tr("phase_logging_in"))
             response = self.api_client.login_with_password(account, password)
         except ApiClientError as exc:
             self.login_view.set_message(str(exc), error=True)
@@ -653,7 +653,7 @@ class MainWindow(QMainWindow):
         except ApiClientError as exc:
             logger.exception("invalid uploader login response")
             self.login_view.set_message(str(exc), error=True)
-            self._refresh_status_bar("登录响应无效")
+            self._refresh_status_bar(tr("phase_login_invalid"))
             return
 
         self.login_view.clear_profile_setup()
@@ -661,19 +661,19 @@ class MainWindow(QMainWindow):
 
     def _handle_send_register_code(self, email: str) -> None:
         if not self._is_valid_email(email):
-            self.login_view.set_message("邮箱格式不正确。", error=True)
+            self.login_view.set_message(tr("settings_url_invalid") if "@" not in email else str(email), error=True)
             return
 
         self._set_busy(True)
         try:
-            self._refresh_status_bar("正在检查邮箱")
+            self._refresh_status_bar(tr("phase_checking_account"))
             email_check = self.api_client.check_email(email)
             if email_check.get("available") is False:
                 self.login_view.switch_to_login_with_email(email)
-                self.login_view.set_message("这个邮箱已经注册过了，请直接输入密码登录。")
-                self._refresh_status_bar("等待密码登录")
+                self.login_view.set_message(tr("msg_email_already_registered"))
+                self._refresh_status_bar(tr("phase_waiting_password_login"))
                 return
-            self._refresh_status_bar("正在发送邮箱验证码")
+            self._refresh_status_bar(tr("phase_sending_code"))
             response = self.api_client.send_code(email, purpose="uploader_login")
         except ApiClientError as exc:
             self.login_view.set_message(str(exc), error=True)
@@ -685,22 +685,22 @@ class MainWindow(QMainWindow):
         self.login_view.start_send_code_cooldown(cooldown_seconds)
         debug_code = str(response.get("debugCode") or "")
         if debug_code:
-            self.login_view.set_message(f"验证码已发送。调试验证码：{debug_code}")
+            self.login_view.set_message(tr("msg_code_sent_debug", code=debug_code))
         else:
-            self.login_view.set_message("验证码已发送，请查看邮箱。")
-        self._refresh_status_bar("等待输入邮箱验证码")
+            self.login_view.set_message(tr("msg_code_sent"))
+        self._refresh_status_bar(tr("phase_waiting_code"))
 
     def _handle_register(self, email: str, password: str, nickname: str, code: str) -> None:
         if len(password) < 6:
-            self.login_view.set_message("密码至少需要 6 位。", error=True)
+            self.login_view.set_message(tr("msg_password_too_short"), error=True)
             return
         if len(nickname) < 2:
-            self.login_view.set_message("用户名/昵称至少 2 个字符。", error=True)
+            self.login_view.set_message(tr("msg_username_too_short"), error=True)
             return
 
         self._set_busy(True)
         try:
-            self._refresh_status_bar("正在创建账号")
+            self._refresh_status_bar(tr("phase_creating_account"))
             reg_email = email if email and "@" in email else f"{nickname}@local"
             response = self.api_client.register_with_password(reg_email, password, nickname, code or None)
         except ApiClientError as exc:
@@ -714,7 +714,7 @@ class MainWindow(QMainWindow):
         except ApiClientError as exc:
             logger.exception("invalid uploader registration response")
             self.login_view.set_message(str(exc), error=True)
-            self._refresh_status_bar("注册响应无效")
+            self._refresh_status_bar(tr("phase_register_invalid"))
             return
 
         self.login_view.clear_profile_setup()
@@ -746,7 +746,7 @@ class MainWindow(QMainWindow):
             initial_dir = Path.cwd()
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "选择战斗日志",
+            tr("import_btn_choose"),
             str(initial_dir),
             "Log Files (*.log);;All Files (*)",
         )
@@ -767,23 +767,20 @@ class MainWindow(QMainWindow):
             if result != QMessageBox.StandardButton.Yes:
                 return
 
-        # 手动导入必须暂停自动归档监听：否则 5 秒定时器会立刻把当前文件
-        # 抢占回归档日志并触发解析（2026-07-05 用户重传旧日志时踩中）。
-        # 通过导入页的“恢复自动监听”按钮可恢复。
         self._pause_managed_monitoring()
 
         integrity = load_raw_log_integrity(file_path)
         archive_trace_allowed = self._is_managed_archive_trace(file_path, integrity)
         parse_allowed = bool(integrity.get("verified")) or archive_trace_allowed
         if integrity.get("verified"):
-            integrity_label = f"完整性：已通过（{integrity.get('proof_source') or 'unknown'}）"
-            message = "日志已读取，可以开始解析。"
+            integrity_label = tr("integrity_managed_archive_label") if archive_trace_allowed else f"Verified ({integrity.get('proof_source') or 'unknown'})"
+            message = tr("msg_log_loaded_ready")
         elif archive_trace_allowed:
-            integrity_label = "自动归档日志：可解析（无导出 proof）"
-            message = "已识别为统一客户端自动归档日志，可以开始解析。"
+            integrity_label = tr("integrity_managed_archive_label")
+            message = tr("msg_log_loaded_ready")
         else:
-            reasons = "；".join(integrity.get("issues") or ["完整性未通过"])
-            integrity_label = "完整性：未通过"
+            reasons = "; ".join(integrity.get("issues") or [tr("error")])
+            integrity_label = tr("error")
             message = reasons
 
         self.store.current_trace_file_name = Path(file_path).name
@@ -801,10 +798,8 @@ class MainWindow(QMainWindow):
         self.battle_upload_view.set_candidates([])
         self.battle_upload_view.clear_progress()
         self.battle_upload_view.set_message("")
-        # 关键：手动加载后一定回到导入页——只有导入页有“开始解析”按钮，
-        # 否则用户会被卡在没有解析入口的上传页（2026-07-05 用户报“也没开始解析”）。
         self._show_trace_import()
-        self._refresh_status_bar("日志已加载，等待解析")
+        self._refresh_status_bar(tr("phase_log_loaded"))
 
     def _remember_trace_directory(self, file_path: str) -> None:
         log_dir = str(Path(file_path).expanduser().resolve().parent)
@@ -819,15 +814,15 @@ class MainWindow(QMainWindow):
     def _handle_parse_trace(self) -> None:
         log_path = self.store.current_trace_path
         if not log_path:
-            self.trace_import_view.set_message("请先选择日志文件。", error=True)
+            self.trace_import_view.set_message(tr("msg_please_select_log"), error=True)
             return
         if self._parse_thread is not None:
-            self.trace_import_view.set_message("正在解析当前日志，请稍等。")
+            self.trace_import_view.set_message(tr("msg_parsing_current_log"))
             return
 
         integrity = load_raw_log_integrity(log_path)
         if not integrity.get("verified") and not self._is_managed_archive_trace(log_path, integrity):
-            reasons = "；".join(integrity.get("issues") or ["日志完整性校验未通过"])
+            reasons = "; ".join(integrity.get("issues") or [tr("error")])
             self.trace_import_view.set_message(reasons, error=True)
             return
 
@@ -836,9 +831,9 @@ class MainWindow(QMainWindow):
     def _start_parse_trace(self, log_path: str, *, context: str, force_full: bool = False) -> None:
         if self._parse_thread is not None:
             if context == "managed":
-                self.battle_upload_view.set_message("正在解析当前归档日志，请稍等。")
+                self.battle_upload_view.set_message(tr("msg_parsing_archive_log"))
             else:
-                self.trace_import_view.set_message("正在解析当前日志，请稍等。")
+                self.trace_import_view.set_message(tr("msg_parsing_current_log"))
             return
         known_fingerprints: set[str] = set()
         known_battle_index: int | None = None
@@ -862,14 +857,14 @@ class MainWindow(QMainWindow):
         self._set_busy(True)
         if context == "managed":
             self._show_battle_upload()
-            self._refresh_status_bar("正在自动解析归档日志")
+            self._refresh_status_bar(tr("phase_parsing_auto"))
             if self._parse_incremental:
-                self.battle_upload_view.set_progress("正在解析新增战斗记录…")
+                self.battle_upload_view.set_progress(tr("worker_parsing_title"))
             else:
-                self.battle_upload_view.set_progress("正在自动解析归档日志…")
+                self.battle_upload_view.set_progress(tr("phase_parsing_auto"))
         else:
-            self._refresh_status_bar("正在本地解析")
-            self.trace_import_view.set_progress("正在本地解析 battle…")
+            self._refresh_status_bar(tr("phase_parsing_local"))
+            self.trace_import_view.set_progress(tr("msg_parsing_local_battles"))
         self._parse_thread = QThread(self)
         self._parse_worker = ParseTraceWorker(
             log_path=log_path,
@@ -914,14 +909,14 @@ class MainWindow(QMainWindow):
             self.trace_import_view.clear_progress()
         if not candidates:
             if context == "managed" and self._parse_incremental and self.store.candidates:
-                self.battle_upload_view.set_message("自动更新完成，暂时没有新增可显示的战斗记录。")
-                self._refresh_status_bar(f"监听中，已显示 {len(self.store.candidates)} 场")
+                self.battle_upload_view.set_message(tr("msg_listening_archive_no_battles"))
+                self._refresh_status_bar(tr("phase_monitoring_candidates", count=len(self.store.candidates)))
                 return
             if context == "managed":
-                self.battle_upload_view.set_message("正在监听自动归档日志，暂时还没有可显示的战斗记录。")
+                self.battle_upload_view.set_message(tr("msg_listening_archive_no_battles"))
             else:
-                self.trace_import_view.set_message("未在日志中识别到可上传的 battle。", error=True)
-            self._refresh_status_bar("等待战斗记录" if context == "managed" else "解析失败")
+                self.trace_import_view.set_message(tr("msg_no_uploadable_identified"), error=True)
+            self._refresh_status_bar(tr("phase_waiting_combat_records") if context == "managed" else tr("phase_parse_failed"))
             return
 
         if context == "managed":
@@ -940,36 +935,21 @@ class MainWindow(QMainWindow):
             for candidate in candidates
             if not candidate.duplicate and not candidate.upload_url
         )
-        uncleared_count = sum(
-            1
-            for candidate in candidates
-            if not _battle_payload_is_completed(candidate.payload)
-        )
-        uncleared_hint = (
-            f" 其中 {uncleared_count} 场未完成，已显示但默认未勾选。"
-            if uncleared_count
-            else ""
-        )
+        managed_prefix = tr("prefix_auto_archive") if context == "managed" else ""
         if uploadable_count and duplicate_count:
             self.battle_upload_view.set_message(
-                f"{'自动更新完成' if context == 'managed' else '解析完成'}，共拆出 {len(candidates)} 场 battle，"
-                f"可上传 {uploadable_count} 场，重复 {duplicate_count} 场。"
-                f"{uncleared_hint}"
+                tr("msg_auto_parsed_summary", managed_prefix=managed_prefix, total=len(candidates), uploadable=uploadable_count, duplicate=duplicate_count)
             )
         elif uploadable_count:
             self.battle_upload_view.set_message(
-                f"{'自动更新完成' if context == 'managed' else '解析完成'}，共拆出 {len(candidates)} 场 battle，"
-                "请勾选并上传。上传时会重新检查重复记录。"
-                f"{uncleared_hint}"
+                tr("msg_auto_parsed_summary", managed_prefix=managed_prefix, total=len(candidates), uploadable=uploadable_count, duplicate=duplicate_count)
             )
         else:
             self.battle_upload_view.set_message(
-                f"{'自动更新完成' if context == 'managed' else '解析完成'}，共拆出 {len(candidates)} 场 battle，"
-                "但都已存在，可直接打开已有记录。"
-                f"{uncleared_hint}"
+                tr("msg_auto_parsed_duplicates", managed_prefix=managed_prefix, total=len(candidates))
             )
         self._show_battle_upload()
-        self._refresh_status_bar(f"解析完成，共 {len(candidates)} 场")
+        self._refresh_status_bar(tr("phase_parsed_complete", count=len(candidates)))
         if self._auto_upload_after_parse:
             self._auto_upload_after_parse = False
             uploadable_candidate_ids = [
@@ -993,9 +973,9 @@ class MainWindow(QMainWindow):
             self._handle_session_invalid()
             return
         if context == "managed":
-            if "未在日志中识别" in message or "未在日志中识别到可用 battle" in message:
-                self.battle_upload_view.set_message("正在监听自动归档日志，暂时还没有可显示的战斗记录。")
-                self._refresh_status_bar("等待战斗记录")
+            if "未在日志中识别" in message or "未在日志中识别到可用 battle" in message or "No uploadable battles" in message:
+                self.battle_upload_view.set_message(tr("msg_listening_archive_no_battles"))
+                self._refresh_status_bar(tr("phase_waiting_combat_records"))
                 return
             self.battle_upload_view.set_message(message, error=True)
             return
@@ -1073,7 +1053,7 @@ class MainWindow(QMainWindow):
             return
         if self.store.session is None:
             self._show_login()
-            self.login_view.set_message("请先登录，登录后会自动显示本机归档的战斗记录。")
+            self.login_view.set_message(tr("msg_login_first_to_view_archive"))
             return
         if self._parse_thread is not None:
             return
@@ -1081,19 +1061,19 @@ class MainWindow(QMainWindow):
         self.store.current_trace_file_name = path.name
         self.store.current_trace_path = str(path)
         if not path.exists():
-            self.battle_upload_view.set_message("正在等待自动归档日志创建。")
+            self.battle_upload_view.set_message(tr("msg_waiting_archive_log"))
             self._show_battle_upload()
-            self._refresh_status_bar("等待自动归档日志")
+            self._refresh_status_bar(tr("phase_waiting_auto_archive"))
             return
         try:
             stat = path.stat()
         except OSError as exc:
-            self.battle_upload_view.set_message(f"读取自动归档日志失败：{exc}", error=True)
+            self.battle_upload_view.set_message(tr("msg_fetch_archive_log_failed", error=str(exc)), error=True)
             return
         if stat.st_size <= 0:
-            self.battle_upload_view.set_message("正在监听自动归档日志，暂时还没有写入内容。")
+            self.battle_upload_view.set_message(tr("msg_listening_archive_empty"))
             self._show_battle_upload()
-            self._refresh_status_bar("等待战斗记录")
+            self._refresh_status_bar(tr("phase_waiting_combat_records"))
             return
         if time.time() - stat.st_mtime < 0.75:
             return
@@ -1163,10 +1143,10 @@ class MainWindow(QMainWindow):
     def _handle_upload_candidates(self, candidate_ids: list, force_reupload: bool = False) -> None:
         if self.store.session is None:
             self._show_login()
-            self.login_view.set_message("请先登录后再上传战斗记录。", error=True)
+            self.login_view.set_message(tr("msg_login_to_upload"), error=True)
             return
         if not candidate_ids:
-            self.battle_upload_view.set_message("请先勾选要上传的 battle。", error=True)
+            self.battle_upload_view.set_message(tr("msg_select_battles_to_upload"), error=True)
             return
 
         requested_candidate_ids = set(candidate_ids)
@@ -1177,7 +1157,7 @@ class MainWindow(QMainWindow):
             and (force_reupload or not candidate.duplicate)
         ]
         if not requested_candidates:
-            self.battle_upload_view.set_message("当前没有可上传的 battle。", error=True)
+            self.battle_upload_view.set_message(tr("msg_no_uploadable_battles"), error=True)
             return
 
         self._set_busy(True)
@@ -1187,17 +1167,17 @@ class MainWindow(QMainWindow):
         requested_count = len(requested_candidates)
         refreshed_payloads_by_log: dict[str, list[dict]] = {}
         try:
-            self._refresh_status_bar(f"正在上传（0/{requested_count}）")
-            self.battle_upload_view.set_progress("准备上传 battle…", current=0, total=requested_count)
+            self._refresh_status_bar(tr("phase_uploading_progress", index=0, total=requested_count))
+            self.battle_upload_view.set_progress(tr("msg_uploading_prepared"), current=0, total=requested_count)
             self.battle_upload_view.set_message("")
             for index, candidate in enumerate(requested_candidates, start=1):
                 candidate.upload_error = None
                 self.battle_upload_view.set_progress(
-                    f"正在上传第 {index}/{requested_count} 场：{candidate.boss_name}",
+                    tr("msg_upload_progress_item", index=index, total=requested_count, boss=candidate.boss_name),
                     current=index - 1,
                     total=requested_count,
                 )
-                self._refresh_status_bar(f"正在上传（{index}/{requested_count}）")
+                self._refresh_status_bar(tr("phase_uploading_progress", index=index, total=requested_count))
                 QApplication.processEvents()
 
                 try:
@@ -1205,7 +1185,7 @@ class MainWindow(QMainWindow):
                 except Exception as exc:  # noqa: BLE001
                     candidate.upload_error = str(exc)
                     candidate.selected = True
-                    failed_messages.append(f"第 {candidate.source_battle_index} 场 {candidate.boss_name}：{exc}")
+                    failed_messages.append(f"{candidate.source_battle_index} {candidate.boss_name}: {exc}")
                     continue
 
                 duplicate_request = {
@@ -1222,13 +1202,13 @@ class MainWindow(QMainWindow):
                         return
                     candidate.upload_error = str(exc)
                     candidate.selected = True
-                    failed_messages.append(f"第 {candidate.source_battle_index} 场 {candidate.boss_name}：{exc}")
+                    failed_messages.append(f"{candidate.source_battle_index} {candidate.boss_name}: {exc}")
                     continue
                 if duplicate_result.get("duplicate") and not force_reupload:
                     candidate.duplicate = True
                     candidate.selected = False
                     candidate.duplicate_url = str(duplicate_result.get("battleUrl") or "") or candidate.duplicate_url
-                    blocked_duplicates.append(f"第 {candidate.source_battle_index} 场 {candidate.boss_name}")
+                    blocked_duplicates.append(f"{candidate.source_battle_index} {candidate.boss_name}")
                     continue
 
                 try:
@@ -1246,16 +1226,15 @@ class MainWindow(QMainWindow):
                         except ApiClientError:
                             duplicate_result = {}
                         candidate.duplicate_url = str(duplicate_result.get("battleUrl") or "") or candidate.duplicate_url
-                        blocked_duplicates.append(f"第 {candidate.source_battle_index} 场 {candidate.boss_name}")
+                        blocked_duplicates.append(f"{candidate.source_battle_index} {candidate.boss_name}")
                         continue
                     candidate.upload_error = str(exc)
                     candidate.selected = True
-                    failed_messages.append(f"第 {candidate.source_battle_index} 场 {candidate.boss_name}：{exc}")
+                    failed_messages.append(f"{candidate.source_battle_index} {candidate.boss_name}: {exc}")
                     continue
                 candidate.upload_url = str(result.get("battleUrl") or "")
                 candidate.upload_error = None
                 candidate.selected = False
-                # 重传成功后清掉"已存在"标记，状态显示为"上传成功"
                 candidate.duplicate = False
                 uploaded_urls.append(candidate.upload_url)
         finally:
@@ -1266,42 +1245,45 @@ class MainWindow(QMainWindow):
         self.battle_upload_view.set_candidates(self.store.candidates)
 
         if uploaded_urls and len(uploaded_urls) == 1 and not failed_messages and requested_count == 1:
-            self.battle_upload_view.set_message("上传成功，已为你打开 battle 详情页。")
-            self._refresh_status_bar("上传完成")
+            self.battle_upload_view.set_message(tr("msg_upload_all_success_browser"))
+            self._refresh_status_bar(tr("phase_upload_complete"))
             if not open_url(self._web_url(uploaded_urls[0])):
                 self.battle_upload_view.set_message(
-                    f"上传成功，但浏览器打开失败，请手动访问：{self._web_url(uploaded_urls[0])}",
+                    tr("msg_upload_success_browser_failed", url=self._web_url(uploaded_urls[0])),
                     error=True,
                 )
             return
 
         if uploaded_urls and not failed_messages and not blocked_duplicates:
             self.battle_upload_view.set_message(
-                f"上传完成：成功 {len(uploaded_urls)} 场。你可以在列表中选中记录后直接打开。"
+                tr("msg_upload_complete_multi", count=len(uploaded_urls))
             )
-            self._refresh_status_bar(f"上传完成，成功 {len(uploaded_urls)} 场")
+            self._refresh_status_bar(tr("phase_upload_complete_success", count=len(uploaded_urls)))
             return
 
         if blocked_duplicates or failed_messages:
             status_bits: list[str] = []
             if uploaded_urls:
-                status_bits.append(f"成功 {len(uploaded_urls)} 场")
+                status_bits.append(f"{tr('status_uploaded')}: {len(uploaded_urls)}")
             if blocked_duplicates:
-                status_bits.append(f"已存在 {len(blocked_duplicates)} 场")
+                status_bits.append(f"{tr('status_duplicate')}: {len(blocked_duplicates)}")
             if failed_messages:
-                status_bits.append(f"失败 {len(failed_messages)} 场")
+                status_bits.append(f"{tr('error')}: {len(failed_messages)}")
             detail_parts: list[str] = []
-            if blocked_duplicates:
-                detail_parts.append("重复项已自动标记为已存在")
             if failed_messages:
-                detail_parts.append(f"失败原因：{'；'.join(failed_messages)}")
+                detail_parts.append("; ".join(failed_messages))
             self.battle_upload_view.set_message(
-                f"上传完成：{'，'.join(status_bits)}。"
-                + (" ".join(detail_parts) if detail_parts else ""),
+                tr("msg_upload_summary_result", summary=" / ".join(status_bits))
+                + (f" ({' '.join(detail_parts)})" if detail_parts else ""),
                 error=bool(failed_messages),
             )
             self._refresh_status_bar(
-                f"上传完成，成功 {len(uploaded_urls)} 场 / 已存在 {len(blocked_duplicates)} 场 / 失败 {len(failed_messages)} 场"
+                tr(
+                    "phase_upload_complete_summary",
+                    success=len(uploaded_urls),
+                    existing=len(blocked_duplicates),
+                    failed=len(failed_messages),
+                )
             )
             return
 
@@ -1361,7 +1343,7 @@ class MainWindow(QMainWindow):
         self.store.current_trace_integrity_verified = False
         self.trace_import_view.set_selected_file(None)
         self.trace_import_view.clear_progress()
-        self.login_view.set_message("登录已失效，请重新登录。", error=True)
+        self.login_view.set_message(tr("msg_session_expired"), error=True)
         self._show_login()
 
     def _handle_start_game_requested(self) -> None:
@@ -1371,19 +1353,19 @@ class MainWindow(QMainWindow):
         if game_exe is None:
             picked, _ = QFileDialog.getOpenFileName(
                 self,
-                "选择 Endfield.exe",
+                "Select Endfield.exe",
                 "",
-                "Endfield.exe (Endfield.exe);;可执行文件 (*.exe);;所有文件 (*)",
+                "Endfield.exe (Endfield.exe);;Executables (*.exe);;All files (*)",
             )
             if not picked:
-                self.battle_upload_view.set_message("已取消启动游戏。")
+                self.battle_upload_view.set_message(tr("msg_launch_game_cancelled"))
                 return
             candidate = Path(picked)
             if candidate.name.lower() != game_launcher.GAME_EXE_NAME.lower() or not (
                 candidate.parent / game_launcher.GAME_DLL_NAME
             ).exists():
                 self.battle_upload_view.set_message(
-                    "所选文件不是有效的 Endfield.exe（同目录需存在 GameAssembly.dll）。", error=True
+                    tr("msg_invalid_game_exe"), error=True
                 )
                 return
             game_exe = candidate
@@ -1392,9 +1374,9 @@ class MainWindow(QMainWindow):
         try:
             game_launcher.launch_game(game_exe)
         except OSError as exc:
-            self.battle_upload_view.set_message(f"启动游戏失败：{exc}", error=True)
+            self.battle_upload_view.set_message(tr("msg_launch_game_failed", error=str(exc)), error=True)
             return
-        self.battle_upload_view.set_message(f"已启动游戏：{game_exe.parent.name}")
+        self.battle_upload_view.set_message(tr("msg_launch_game_success", folder=game_exe.parent.name))
 
     def _handle_logout_requested(self) -> None:
         result = QMessageBox.question(

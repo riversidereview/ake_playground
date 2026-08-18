@@ -112,8 +112,8 @@ def check_nickname(nickname: str = Query(min_length=2, max_length=32)) -> CheckN
 
 
 @router.get("/check-email", response_model=CheckEmailResponse)
-def check_email(email: EmailStr = Query()) -> CheckEmailResponse:
-    return CheckEmailResponse(available=auth_service.check_email(str(email)))
+def check_email(email: str = Query(min_length=1, max_length=320)) -> CheckEmailResponse:
+    return CheckEmailResponse(available=auth_service.check_email(str(email).strip()))
 
 
 @router.get("/me", response_model=AuthMeResponse)

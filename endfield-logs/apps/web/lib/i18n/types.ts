@@ -231,10 +231,15 @@ export type Dictionary = {
     registerTitle: string;
     emailLabel: string;
     emailPlaceholder: string;
+    accountOrEmailLabel: string;
+    accountOrEmailPlaceholder: string;
     passwordLabel: string;
     passwordPlaceholder: string;
+    passwordRegisterPlaceholder: string;
+    passwordMinLength: string;
     nicknameLabel: string;
     nicknamePlaceholder: string;
+    usernameSuffix: string;
     codeLabel: string;
     codePlaceholder: string;
     sendCode: string;

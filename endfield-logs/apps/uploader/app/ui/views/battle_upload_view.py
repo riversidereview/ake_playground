@@ -150,23 +150,29 @@ class BattleUploadView(QWidget):
         for button in [
             self.select_all_button,
             self.clear_selection_button,
+            self.upload_button,
             self.upload_current_button,
             self.reupload_button,
             self.retry_failed_button,
             self.open_record_button,
         ]:
-            button.setObjectName("secondaryAction")
-            button.setMinimumHeight(40)
+            if button is self.upload_button:
+                button.setObjectName("primaryAction")
+            else:
+                button.setObjectName("secondaryAction")
+            button.setMinimumHeight(34)
+            button.setIconSize(QSize(14, 14))
             set_pointing_hand(button)
-        self.upload_button.setObjectName("primaryAction")
-        self.upload_button.setMinimumHeight(42)
-        set_pointing_hand(self.upload_button)
+
         for button in [self.back_button, self.logout_button]:
             button.setObjectName("ghostAction")
-            button.setMinimumHeight(36)
+            button.setMinimumHeight(32)
+            button.setIconSize(QSize(14, 14))
             set_pointing_hand(button)
+
         self.start_game_button.setObjectName("secondaryAction")
-        self.start_game_button.setMinimumHeight(36)
+        self.start_game_button.setMinimumHeight(32)
+        self.start_game_button.setIconSize(QSize(14, 14))
         self.start_game_button.setToolTip(tr("launch_game_tooltip"))
         set_pointing_hand(self.start_game_button)
         self.start_game_button.setIcon(
@@ -197,11 +203,11 @@ class BattleUploadView(QWidget):
         )
 
         main_actions = QHBoxLayout()
-        main_actions.setSpacing(10)
+        main_actions.setSpacing(6)
         main_actions.addWidget(self.select_all_button)
         main_actions.addWidget(self.clear_selection_button)
         main_actions.addStretch(1)
-        main_actions.addWidget(self.upload_button, 2)
+        main_actions.addWidget(self.upload_button)
         main_actions.addWidget(self.upload_current_button)
         main_actions.addWidget(self.reupload_button)
         main_actions.addWidget(self.retry_failed_button)
@@ -216,11 +222,11 @@ class BattleUploadView(QWidget):
 
         self.action_panel = QFrame()
         self.action_panel.setObjectName("actionPanel")
-        self.action_panel.setMinimumHeight(116)
+        self.action_panel.setMinimumHeight(96)
         self.action_panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         action_layout = QVBoxLayout(self.action_panel)
-        action_layout.setContentsMargins(14, 12, 14, 12)
-        action_layout.setSpacing(10)
+        action_layout.setContentsMargins(12, 10, 12, 10)
+        action_layout.setSpacing(8)
         action_layout.addLayout(main_actions)
         action_layout.addLayout(footer_actions)
 

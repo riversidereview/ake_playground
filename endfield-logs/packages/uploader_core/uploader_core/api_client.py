@@ -85,6 +85,23 @@ class ApiClient:
             detail = payload.get("detail")
             if isinstance(detail, dict):
                 return str(detail.get("message") or detail.get("code") or f"请求失败（{response.status_code}）")
+            if isinstance(detail, list):
+                msgs = []
+                for item in detail:
+                    if isinstance(item, dict):
+                        loc = " -> ".join(str(x) for x in item.get("loc", []) if x not in ("body", "query"))
+                        msg = str(item.get("msg") or "")
+                        if "at least 6 characters" in msg:
+                            msg = "密码至少需要 6 个字符"
+                        elif "at least 2 characters" in msg:
+                            msg = "用户名/昵称至少需要 2 个字符"
+                        elif "valid email address" in msg:
+                            msg = "请输入有效的邮箱地址"
+                        msgs.append(f"{loc}: {msg}" if loc else msg)
+                    elif isinstance(item, str):
+                        msgs.append(item)
+                if msgs:
+                    return "；".join(msgs)
             if isinstance(detail, str):
                 return detail
             message = payload.get("message")

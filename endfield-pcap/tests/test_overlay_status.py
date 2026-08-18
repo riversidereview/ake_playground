@@ -62,8 +62,10 @@ def test_stale_fatal_service_status_remains_visible(monkeypatch, tmp_path) -> No
     status = overlay.read_service_status()
 
     assert status == payload
-    assert overlay.service_status_text(status) == "状态：采集异常（AttributeError）"
-    assert overlay.service_metrics_text(status) == "错误：FieldDescriptor.label is unavailable"
+    assert overlay.service_status_text(status, "zh") == "状态：采集异常（AttributeError）"
+    assert overlay.service_metrics_text(status, "zh") == "错误：FieldDescriptor.label is unavailable"
+    assert overlay.service_status_text(status, "en") == "Status: Capture Error（AttributeError）"
+    assert overlay.service_metrics_text(status, "en") == "Error: FieldDescriptor.label is unavailable"
 
 
 def test_stale_healthy_service_status_is_disconnected(monkeypatch, tmp_path) -> None:

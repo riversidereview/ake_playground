@@ -156,11 +156,11 @@ QProgressBar::chunk {
 QPushButton#primaryAction {
     background: #153d66;
     border: 0;
-    border-radius: 15px;
+    border-radius: 12px;
     color: #ffffff;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
-    padding: 12px 18px;
+    padding: 7px 12px;
 }
 QPushButton#primaryAction:hover {
     background: #1e5b92;
@@ -172,11 +172,11 @@ QPushButton#primaryAction:disabled {
 QPushButton#secondaryAction {
     background: #ffffff;
     border: 1px solid #d3dde8;
-    border-radius: 15px;
+    border-radius: 12px;
     color: #35516f;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    padding: 11px 16px;
+    padding: 6px 10px;
 }
 QPushButton#secondaryAction:hover {
     background: #f4f8fc;
@@ -190,14 +190,14 @@ QPushButton#ghostAction {
     background: transparent;
     border: 0;
     color: #47627f;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    padding: 10px 12px;
+    padding: 6px 10px;
 }
 QPushButton#ghostAction:hover {
     color: #153d66;
     background: #edf5fd;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 QLabel#messageLabel {
     border-radius: 14px;

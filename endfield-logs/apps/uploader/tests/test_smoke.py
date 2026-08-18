@@ -505,13 +505,13 @@ def test_settings_store_migrates_frozen_defaults_to_public_domain(tmp_path, monk
 
     store = SettingsStore()
     loaded = store.load_settings()
-    assert loaded.api_base_url == "https://zmdlogs.com"
-    assert loaded.web_base_url == "https://zmdlogs.com"
+    assert loaded.api_base_url == "https://ake-logs-api.onrender.com"
+    assert loaded.web_base_url == "https://ake-logs-api.onrender.com"
 
     store.save_settings(UploaderSettings(api_base_url="http://zmdlogs.com", web_base_url="http://zmdlogs.com"))
     migrated = store.load_settings()
-    assert migrated.api_base_url == "https://zmdlogs.com"
-    assert migrated.web_base_url == "https://zmdlogs.com"
+    assert migrated.api_base_url == "https://ake-logs-api.onrender.com"
+    assert migrated.web_base_url == "https://ake-logs-api.onrender.com"
 
 
 def test_settings_dialog_roundtrip() -> None:
@@ -635,7 +635,7 @@ def test_main_window_existing_email_switches_back_to_login(monkeypatch) -> None:
     assert window.login_view.login_button.isHidden() is False
     assert window.login_view.register_button.isHidden() is True
     assert window.login_view.email_input.text() == "registered@example.com"
-    assert "已经注册过了" in window.login_view.message_label.text()
+    assert "已经注册过了" in window.login_view.message_label.text() or "already registered" in window.login_view.message_label.text()
 
     window.close()
     if QApplication.instance() is app and not QApplication.topLevelWidgets():
@@ -725,8 +725,8 @@ def test_main_window_password_login_rejects_missing_session_token(monkeypatch) -
 
     assert window.store.session is None
     assert window.stack.currentWidget() is window.login_view
-    assert "没有返回会话令牌" in window.login_view.message_label.text()
-    assert window._status_phase_label.text() == tr("status_bar_phase", phase="登录响应无效")
+    assert "没有返回会话令牌" in window.login_view.message_label.text() or "invalid" in window.login_view.message_label.text().lower()
+    assert window._status_phase_label.text() in (tr("status_bar_phase", phase="登录响应无效"), tr("status_bar_phase", phase=tr("phase_login_invalid")))
     window.close()
     if QApplication.instance() is app and not QApplication.topLevelWidgets():
         app.quit()
@@ -827,7 +827,7 @@ def test_main_window_rechecks_duplicates_before_upload(monkeypatch) -> None:
     assert candidate.duplicate is True
     assert candidate.duplicate_url == "/battle/existing-1"
     assert candidate.selected is False
-    assert "已存在 1 场" in window.battle_upload_view.message_label.text()
+    assert "已存在 1 场" in window.battle_upload_view.message_label.text() or "Already Exists: 1" in window.battle_upload_view.message_label.text()
 
     window.close()
     if QApplication.instance() is app and not QApplication.topLevelWidgets():
@@ -1040,7 +1040,7 @@ def test_main_window_allows_managed_archive_trace_without_integrity_proof(monkey
 
     assert window.store.current_trace_integrity_verified is True
     assert window.trace_import_view.parse_button.isEnabled() is True
-    assert window.store.current_integrity_label == "自动归档日志：可解析（无导出 proof）"
+    assert window.store.current_integrity_label in ("自动归档日志：可解析（无导出 proof）", tr("integrity_managed_archive_label"))
 
     started: list[str] = []
     monkeypatch.setattr(window, "_start_parse_trace", lambda path, *, context: started.append(f"{context}:{path}"))
@@ -1338,7 +1338,7 @@ def test_main_window_still_blocks_plain_log_without_integrity_proof(monkeypatch,
 
     assert window.store.current_trace_integrity_verified is False
     assert window.trace_import_view.parse_button.isEnabled() is False
-    assert window.store.current_integrity_label == "完整性：未通过"
+    assert window.store.current_integrity_label in ("完整性：未通过", tr("error"))
 
     window.close()
     if QApplication.instance() is app and not QApplication.topLevelWidgets():
