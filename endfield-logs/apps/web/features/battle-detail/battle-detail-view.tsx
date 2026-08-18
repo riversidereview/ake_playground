@@ -1063,6 +1063,8 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
 
         const displayEvents: Array<
           (typeof events)[number] & {
+            rawEventName?: string | null;
+            preferredName?: string;
             skillCategory: ReturnType<typeof getBattleSkillCategory>;
             skillCategoryLabel: string;
             hits: Array<{
