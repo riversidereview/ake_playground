@@ -68,9 +68,16 @@ def _repo_root() -> Path:
         return Path(override)
     frozen_root = getattr(sys, "_MEIPASS", None)
     if frozen_root:
-        return Path(frozen_root)
+        frozen_path = Path(frozen_root)
+        if (frozen_path / "data").exists():
+            return frozen_path
+    if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).resolve().parent
+        for parent in (exe_dir, *exe_dir.parents):
+            if (parent / "data" / "local_tables").exists() or (parent / "data" / "akedata").exists():
+                return parent
     for parent in Path(__file__).resolve().parents:
-        if (parent / "data").exists() and (parent / "packages").exists():
+        if (parent / "data").exists() and ((parent / "packages").exists() or (parent / "data" / "local_tables").exists()):
             return parent
     return Path(__file__).resolve().parents[3]
 

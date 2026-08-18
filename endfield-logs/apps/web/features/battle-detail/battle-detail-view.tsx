@@ -436,10 +436,12 @@ function ContributionDonutChart({
   title,
   subtitle,
   entries,
+  emptyText,
 }: {
   title: string;
   subtitle: string;
   entries: ContributionChartEntry[];
+  emptyText?: string;
 }) {
   const total = entries.reduce((sum, entry) => sum + entry.value, 0);
   const dominantEntry = entries[0] ?? null;
@@ -503,7 +505,7 @@ function ContributionDonutChart({
           </div>
         </div>
       ) : (
-        <div className="empty-state">暂无可用数据。</div>
+        <div className="empty-state">{emptyText ?? "暂无可用数据。"}</div>
       )}
     </article>
   );
@@ -710,7 +712,8 @@ function getBuffEffectRateAtTs(effect: TimelineBuffEffect, segment: BuffAxisSegm
 function formatBuffEffectLine(effect: TimelineBuffEffect, segment: BuffAxisSegment, tsMsFromStart: number, locale: Locale = "zh") {
   const zone = effect.zone ?? "";
   const zoneLabel = BUFF_ZONE_LABELS[locale]?.[zone] ?? (zone || (locale === "en" ? "Effect" : "效果"));
-  const element = effect.element && effect.element !== "all" ? `/${DAMAGE_ELEMENT_LABELS[locale]?.[effect.element] ?? effect.element}` : "";
+  const elementLabel = effect.element && effect.element !== "all" ? (DAMAGE_ELEMENT_LABELS[locale]?.[effect.element] ?? effect.element) : "";
+  const element = elementLabel ? (locale === "en" ? ` / ${elementLabel}` : `/${elementLabel}`) : "";
   const rate = getBuffEffectRateAtTs(effect, segment, tsMsFromStart);
   return `${zoneLabel}${element} ${formatBuffEffectRate(rate)}`;
 }
@@ -719,16 +722,16 @@ function getBuffTooltipSegments(buff: BuffAxisWindow, tsMsFromStart: number) {
   return buff.segments.filter((segment) => segment.startMs <= tsMsFromStart && tsMsFromStart <= segment.endMs);
 }
 
-function getBuffSegmentEffectLines(segment: BuffAxisSegment, tsMsFromStart: number) {
+function getBuffSegmentEffectLines(segment: BuffAxisSegment, tsMsFromStart: number, locale: Locale = "zh") {
   const effects = segment.dynamicEffects.length > 0 ? segment.dynamicEffects : segment.effects;
-  const lines = effects.map((effect) => formatBuffEffectLine(effect, segment, tsMsFromStart));
+  const lines = effects.map((effect) => formatBuffEffectLine(effect, segment, tsMsFromStart, locale));
   return Array.from(new Set(lines.filter((line) => !line.endsWith(" -"))));
 }
 
-function dedupeBuffTooltipSegments(segments: BuffAxisSegment[], tsMsFromStart: number) {
+function dedupeBuffTooltipSegments(segments: BuffAxisSegment[], tsMsFromStart: number, locale: Locale = "zh") {
   const seen = new Set<string>();
   return segments.filter((segment) => {
-    const effectKey = getBuffSegmentEffectLines(segment, tsMsFromStart).join("|");
+    const effectKey = getBuffSegmentEffectLines(segment, tsMsFromStart, locale).join("|");
     const key = `${segment.name}::${segment.sourceText}::${segment.startMs}::${segment.endMs}::${effectKey}`;
     if (seen.has(key)) {
       return false;
@@ -2025,6 +2028,7 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
     ? dedupeBuffTooltipSegments(
         buffHoverSegments.length > 0 ? buffHoverSegments : buffHover.buff.segments,
         buffHover.tsMsFromStart,
+        locale,
       )
     : [];
 
@@ -2339,6 +2343,7 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
                 {selectedCharacterName ? (
                   <>
                     <ContributionDonutChart
+                      emptyText={locale === "en" ? "No available data." : "暂无可用数据。"}
                       entries={selectedCharacterSkillTypeContributionEntries}
                       subtitle={
                         locale === "en"
@@ -2348,6 +2353,7 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
                       title={locale === "en" ? "Skill Type Share" : "技能类型占比"}
                     />
                     <ContributionDonutChart
+                      emptyText={locale === "en" ? "No available data." : "暂无可用数据。"}
                       entries={selectedCharacterDamageTypeContributionEntries}
                       subtitle={
                         locale === "en"
@@ -2360,16 +2366,19 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
                 ) : (
                   <>
                     <ContributionDonutChart
+                      emptyText={locale === "en" ? "No available data." : "暂无可用数据。"}
                       entries={dpsContributionEntries}
                       subtitle={locale === "en" ? "Aggregated by operator DPS" : "按本场角色 DPS 汇总"}
                       title={locale === "en" ? "DPS Share" : "DPS 占比"}
                     />
                     <ContributionDonutChart
+                      emptyText={locale === "en" ? "No available data." : "暂无可用数据。"}
                       entries={rdpsContributionEntries}
                       subtitle={locale === "en" ? "Aggregated by operator rDPS" : "按本场角色 rDPS 汇总"}
                       title={locale === "en" ? "rDPS Share" : "rDPS 占比"}
                     />
                     <ContributionDonutChart
+                      emptyText={locale === "en" ? "No available data." : "暂无可用数据。"}
                       entries={damageTypeContributionEntries}
                       subtitle={
                         locale === "en"
@@ -2980,7 +2989,7 @@ export function BattleDetailView({ detail, metric, axisOnly = false }: BattleDet
           <span>{locale === "en" ? "Source: " : "来源："}{buffHover.buff.sourceText}</span>
           <div className="timeline-buff-tooltip-list">
             {buffTooltipSegments.map((segment, index) => {
-              const effectLines = getBuffSegmentEffectLines(segment, buffHover.tsMsFromStart);
+              const effectLines = getBuffSegmentEffectLines(segment, buffHover.tsMsFromStart, locale);
               return (
                 <div className="timeline-buff-tooltip-row" key={`${segment.eventKey ?? segment.name}-${index}`}>
                   <span>
