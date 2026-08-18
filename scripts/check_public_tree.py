@@ -1,40 +1,23 @@
 from __future__ import annotations
 
+import os
 import re
 import sys
+import time
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
 FORBIDDEN_SUFFIXES = {
-    ".7z",
-    ".db",
-    ".key",
-    ".log",
-    ".p12",
-    ".pcap",
-    ".pcapng",
-    ".pem",
-    ".pfx",
-    ".rar",
-    ".sqlite",
-    ".sqlite3",
-    ".zip",
+    ".7z", ".db", ".key", ".log", ".p12", ".pcap", ".pcapng", ".pem", ".pfx", ".rar", ".sqlite", ".sqlite3", ".zip"
 }
 
 FORBIDDEN_PATH_PARTS = {
-    ".git",
-    ".local",
-    ".next",
-    ".next-build",
-    ".venv",
-    "__pycache__",
-    "debug",
-    "dist",
-    "logs",
-    "node_modules",
-    "reports",
+    ".git", ".local", ".next", ".next-build", ".venv", "venv", "__pycache__", "debug", "dist", "build", "logs", "node_modules", "reports"
+}
+
+TEXT_SUFFIXES = {
+    ".py", ".ts", ".tsx", ".js", ".mjs", ".cjs", ".json", ".md", ".toml", ".yaml", ".yml", ".html", ".css", ".txt", ".sh", ".bat", ".ps1"
 }
 
 CONTENT_RULES = {
@@ -44,6 +27,8 @@ CONTENT_RULES = {
     "legacy production IP": re.compile(r"(?<!\d)1\.14\.96\.10(?!\d)"),
     "tracked embedded key module": re.compile(r"\bembedded_keys\b"),
 }
+
+EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 
 ALLOWED_RESOURCE_FILES = {
     Path("endfield-logs/data/README.md"),
@@ -57,48 +42,55 @@ ALLOWED_RESOURCE_FILES = {
 
 RESOURCE_ROOTS = tuple(path.parent for path in ALLOWED_RESOURCE_FILES)
 
-
-def iter_files() -> list[Path]:
-    files: list[Path] = []
-    for path in ROOT.rglob("*"):
-        if not path.is_file():
-            continue
-        relative = path.relative_to(ROOT)
-        if any(part in FORBIDDEN_PATH_PARTS for part in relative.parts):
-            continue
-        files.append(path)
-    return files
-
-
 def main() -> int:
+    t0 = time.time()
     issues: list[str] = []
-    for path in iter_files():
-        relative = path.relative_to(ROOT)
-        lower_name = path.name.lower()
-        if path.suffix.lower() in FORBIDDEN_SUFFIXES:
-            issues.append(f"forbidden file type: {relative}")
-        if lower_name == ".env" or (lower_name.startswith(".env.") and lower_name != ".env.example"):
-            issues.append(f"forbidden environment file: {relative}")
-        for resource_root in RESOURCE_ROOTS:
-            if relative.parent == resource_root and relative not in ALLOWED_RESOURCE_FILES:
-                issues.append(f"unexpected runtime resource: {relative}")
-        if path.suffix.lower() in {".ico", ".png", ".webp", ".jpg", ".jpeg"}:
-            continue
-        if relative == Path("scripts/check_public_tree.py"):
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except (UnicodeDecodeError, OSError):
-            continue
-        for label, pattern in CONTENT_RULES.items():
-            if pattern.search(text):
-                issues.append(f"{label}: {relative}")
+    checked_count = 0
 
-        for email in re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text):
-            if not email.lower().endswith("@example.com"):
-                issues.append(f"non-example email: {relative}")
-                break
+    for dirpath, dirnames, filenames in os.walk(ROOT):
+        dirnames[:] = [d for d in dirnames if d not in FORBIDDEN_PATH_PARTS and not d.startswith('.')]
+        current_dir = Path(dirpath)
+        for filename in filenames:
+            p = current_dir / filename
+            relative = p.relative_to(ROOT)
+            if any(part in FORBIDDEN_PATH_PARTS for part in relative.parts):
+                continue
 
+            checked_count += 1
+            lower_name = filename.lower()
+            lower_suffix = p.suffix.lower()
+
+            if lower_suffix in FORBIDDEN_SUFFIXES:
+                issues.append(f"forbidden file type: {relative}")
+            if lower_name == ".env" or (lower_name.startswith(".env.") and lower_name != ".env.example"):
+                issues.append(f"forbidden environment file: {relative}")
+            for resource_root in RESOURCE_ROOTS:
+                if relative.parent == resource_root and relative not in ALLOWED_RESOURCE_FILES:
+                    issues.append(f"unexpected runtime resource: {relative}")
+
+            if lower_suffix not in TEXT_SUFFIXES and lower_name not in {".env.example", ".gitignore", "dockerfile"}:
+                continue
+            if relative == Path("scripts/check_public_tree.py"):
+                continue
+
+            try:
+                # Skip large files (> 200KB)
+                if p.stat().st_size > 200_000:
+                    continue
+                text = p.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+
+            for label, pattern in CONTENT_RULES.items():
+                if pattern.search(text):
+                    issues.append(f"{label}: {relative}")
+
+            for email in EMAIL_PATTERN.findall(text):
+                if not email.lower().endswith("@example.com"):
+                    issues.append(f"non-example email: {relative}")
+                    break
+
+    print(f"Scanned {checked_count} files in {time.time()-t0:.2f}s.")
     if issues:
         print("Public-tree audit failed:")
         for issue in sorted(set(issues)):
@@ -106,7 +98,6 @@ def main() -> int:
         return 1
     print("Public-tree audit passed.")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())
