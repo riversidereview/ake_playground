@@ -189,7 +189,7 @@ class _DownloadProgressDialog:
 
         self._tk = tk
         self._root = tk.Tk()
-        self._root.title("正在更新")
+        self._root.title("Updating Client")
         self._root.resizable(False, False)
         try:
             self._root.attributes("-topmost", True)
@@ -198,12 +198,12 @@ class _DownloadProgressDialog:
 
         frame = ttk.Frame(self._root, padding=18)
         frame.grid(row=0, column=0, sticky="nsew")
-        ttk.Label(frame, text=f"正在下载更新 {remote_version} ({remote_build})").grid(
+        ttk.Label(frame, text=f"Downloading update {remote_version} ({remote_build})").grid(
             row=0,
             column=0,
             sticky="w",
         )
-        self._status = ttk.Label(frame, text="正在连接服务器...")
+        self._status = ttk.Label(frame, text="Connecting to server...")
         self._status.grid(row=1, column=0, sticky="w", pady=(8, 0))
         self._bar = ttk.Progressbar(frame, orient="horizontal", length=360, mode="determinate", maximum=100)
         self._bar.grid(row=2, column=0, sticky="ew", pady=(10, 0))
@@ -225,15 +225,15 @@ class _DownloadProgressDialog:
                     self._indeterminate = False
                 percent = min(100.0, max(0.0, downloaded / total * 100.0))
                 self._bar["value"] = percent
-                self._status.configure(text=f"正在下载更新包... {percent:.0f}%")
+                self._status.configure(text=f"Downloading update package... {percent:.0f}%")
                 self._detail.configure(text=f"{_format_bytes(downloaded)} / {_format_bytes(total)}")
             else:
                 if not self._indeterminate:
                     self._bar.configure(mode="indeterminate")
                     self._bar.start(12)
                     self._indeterminate = True
-                self._status.configure(text="正在下载更新包...")
-                self._detail.configure(text=f"已下载 {_format_bytes(downloaded)}")
+                self._status.configure(text="Downloading update package...")
+                self._detail.configure(text=f"Downloaded {_format_bytes(downloaded)}")
             self._root.update_idletasks()
             self._root.update()
         except Exception:  # noqa: BLE001 - progress UI must not break updates.
@@ -381,12 +381,12 @@ def _show_update_prompt(manifest: dict[str, object], *, local_version: str, loca
     notes = str(manifest.get("notes") or "").strip()
     force = bool(manifest.get("force"))
     lines = [
-        f"当前版本：{local_version} ({local_build})",
-        f"最新版本：{remote_version} ({remote_build})",
+        f"Current Version: {local_version} ({local_build})",
+        f"Latest Version: {remote_version} ({remote_build})",
     ]
     if notes:
         lines.extend(["", notes])
-    lines.extend(["", "现在更新会关闭客户端，更新完成后自动重启。"])
+    lines.extend(["", "Updating now will close the client and restart automatically once complete."])
 
     root = tk.Tk()
     root.withdraw()
@@ -396,9 +396,9 @@ def _show_update_prompt(manifest: dict[str, object], *, local_version: str, loca
         except tk.TclError:
             pass
         if force:
-            accepted = messagebox.askokcancel("需要更新", "\n".join(lines), parent=root)
+            accepted = messagebox.askokcancel("Update Required", "\n".join(lines), parent=root)
             return True if accepted else None
-        return messagebox.askyesno("发现新版本", "\n".join(lines), parent=root)
+        return messagebox.askyesno("Update Available", "\n".join(lines), parent=root)
     finally:
         root.destroy()
 
@@ -410,7 +410,7 @@ def _show_error(message: str) -> None:
     root = tk.Tk()
     root.withdraw()
     try:
-        messagebox.showerror("更新失败", message, parent=root)
+        messagebox.showerror("Update Failed", message, parent=root)
     finally:
         root.destroy()
 
@@ -424,7 +424,7 @@ def _download_update_artifact(
     package_url = str(artifact.get("url") or "").strip()
     expected_sha256 = str(artifact.get("sha256") or "").strip().lower()
     if not package_url or not expected_sha256:
-        raise ValueError("更新清单缺少下载地址或 sha256 校验值。")
+        raise ValueError("Update manifest is missing download URL or SHA256 checksum.")
 
     package_path = _updates_root() / Path(package_url.split("?")[0]).name
     progress_dialog: _DownloadProgressDialog | None = None
@@ -432,7 +432,7 @@ def _download_update_artifact(
         if not package_path.exists() or _sha256_file(package_path) != expected_sha256:
             progress_dialog = _DownloadProgressDialog(remote_version=remote_version, remote_build=remote_build)
             _download_file(package_url, package_path, progress=progress_dialog.update)
-            progress_dialog.set_status("正在校验更新包...", package_path.name)
+            progress_dialog.set_status("Verifying update package checksum...", package_path.name)
         actual_sha256 = _sha256_file(package_path)
     finally:
         if progress_dialog is not None:
@@ -496,14 +496,14 @@ def check_and_maybe_start_update() -> bool:
                 )
             except (OSError, urllib.error.URLError, ValueError, http.client.HTTPException) as fallback_exc:
                 LOGGER.warning("failed to download full update package", exc_info=True)
-                _show_error(f"下载更新失败：{fallback_exc}")
+                _show_error(f"Failed to download update: {fallback_exc}")
                 return bool(manifest.get("force"))
         else:
-            _show_error(f"下载更新失败：{exc}")
+            _show_error(f"Failed to download update: {exc}")
             return bool(manifest.get("force"))
 
     if package_path is None:
-        _show_error("下载更新失败：未能获取更新包路径。")
+        _show_error("Failed to download update: Unable to obtain package path.")
         return bool(manifest.get("force"))
 
     if actual_sha256 != expected_sha256:
@@ -522,22 +522,22 @@ def check_and_maybe_start_update() -> bool:
                 )
             except (OSError, urllib.error.URLError, ValueError, http.client.HTTPException) as exc:
                 LOGGER.warning("failed to download full update package", exc_info=True)
-                _show_error(f"下载更新失败：{exc}")
+                _show_error(f"Failed to download update: {exc}")
                 return bool(manifest.get("force"))
             if actual_sha256 != expected_sha256:
                 try:
                     package_path.unlink(missing_ok=True)
                 except OSError:
                     pass
-                _show_error("更新包校验失败，已取消更新。")
+                _show_error("Update package checksum verification failed. Update cancelled.")
                 return bool(manifest.get("force"))
         else:
-            _show_error("更新包校验失败，已取消更新。")
+            _show_error("Update package checksum verification failed. Update cancelled.")
             return bool(manifest.get("force"))
 
     updater_exe = _prepare_updater()
     if updater_exe is None:
-        _show_error("更新器缺失，请重新下载完整客户端。")
+        _show_error("Updater executable is missing. Please download the full client.")
         return bool(manifest.get("force"))
 
     command = [
@@ -555,6 +555,6 @@ def check_and_maybe_start_update() -> bool:
         subprocess.Popen(command, cwd=str(updater_exe.parent))
     except OSError as exc:
         LOGGER.warning("failed to launch updater", exc_info=True)
-        _show_error(f"无法启动更新器：{exc}")
+        _show_error(f"Failed to launch updater: {exc}")
         return bool(manifest.get("force"))
     return True

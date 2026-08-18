@@ -441,7 +441,7 @@ def collect_diagnostic_report(watch_seconds: int = WATCH_SECONDS, game_port: int
     lines.append(f"settings={default_settings_path()} exists={'yes' if default_settings_path().exists() else 'no'}")
 
     lines.append("")
-    lines.append("==== 基础检查 ====")
+    lines.append("==== Basic Environment ====")
     lines.append(f"is_admin={_is_admin()}")
     lines.append(f"game_dir={configured_game_dir or '-'} valid={'yes' if is_valid_game_dir(configured_game_dir) else 'no'}")
     lines.append(f"configured_log_dir={configured_log_dir or '-'}")
@@ -450,13 +450,13 @@ def collect_diagnostic_report(watch_seconds: int = WATCH_SECONDS, game_port: int
     lines.append(f"status_file={status_path} exists={'yes' if status_path.exists() else 'no'}")
 
     if not is_valid_game_dir(configured_game_dir):
-        diagnosis.append("游戏目录未配置或无效：在客户端里重新选择 Endfield.exe 或 Endfield Game 目录。")
+        diagnosis.append("Game directory not configured or invalid: Select Endfield.exe or Endfield Game directory in client.")
 
     lines.append("")
-    lines.append("==== 进程 ====")
+    lines.append("==== Process Check ====")
     processes = _process_rows()
     if not processes:
-        lines.append("未发现 Endfield / EndfieldLogs 相关进程。")
+        lines.append("No Endfield / EndfieldLogs processes found.")
     for row in processes:
         lines.append(f"process name={row.name} pid={row.pid} started={row.started}")
         lines.append(f"  path={row.path}")
@@ -467,19 +467,19 @@ def collect_diagnostic_report(watch_seconds: int = WATCH_SECONDS, game_port: int
         if row.name.casefold() in {"endfieldlogsclient.exe", "endfieldpcap.exe"}
     }
     if not game_pids:
-        diagnosis.append("当前没有检测到 Endfield.exe：如果要排查没数据，请先启动游戏并进入账号。")
+        diagnosis.append("Endfield.exe is not running: Start the game and enter a character before inspecting live data.")
     if not client_pids:
-        diagnosis.append("当前没有检测到统一客户端主进程：建议保持客户端运行时再跑诊断器。")
+        diagnosis.append("Unified client main process is not running: Keep the client open while diagnosing.")
     if len(client_pids) > 1:
-        diagnosis.append("检测到多个客户端采集进程：关闭多余客户端，只保留一个。")
+        diagnosis.append("Multiple client capture processes detected: Close duplicate clients and keep only one running.")
 
     lines.append("")
-    lines.append("==== 游戏 TCP 连接 ====")
+    lines.append("==== Game TCP Connections ====")
     tcp_rows = _tcp_rows(game_pids, game_port)
     if not tcp_rows:
-        lines.append(f"未发现 Endfield.exe 的 tcp/{game_port} 连接。")
+        lines.append(f"No tcp/{game_port} connections found for Endfield.exe.")
         if game_pids:
-            diagnosis.append(f"游戏已运行但没有 tcp/{game_port} 连接：可能还没进游戏服务器，或端口规则需要更新。")
+            diagnosis.append(f"Game is running but no tcp/{game_port} connection found: Game may not have connected to the game server yet.")
     else:
         lines.extend(tcp_rows)
 
@@ -490,12 +490,12 @@ def collect_diagnostic_report(watch_seconds: int = WATCH_SECONDS, game_port: int
     device_count = 0
     device_error: str | None = None
     if not npcap_ok:
-        diagnosis.append("未检测到 Npcap/wpcap.dll：安装 Npcap 后重启客户端。")
+        diagnosis.append("Npcap / wpcap.dll not detected: Please install Npcap and restart the client.")
     else:
         devices, device_error = _list_npcap_devices_with_timeout()
         if device_error is not None:
             lines.append(f"npcap_error={device_error}")
-            diagnosis.append("Npcap 已安装但枚举网卡失败或超时：尝试管理员运行或重新安装 Npcap。")
+            diagnosis.append("Npcap is installed but device enumeration failed or timed out: Try running as Administrator or reinstalling Npcap.")
         else:
             devices = devices or []
             device_count = len(devices)
@@ -507,14 +507,14 @@ def collect_diagnostic_report(watch_seconds: int = WATCH_SECONDS, game_port: int
                         f"ipv4={','.join(device.ipv4_addrs) or '-'} name={device.name}{loopback}"
                 )
     if npcap_ok and device_count == 0 and device_error is None:
-        diagnosis.append("Npcap 没有枚举到网卡：尝试重新安装 Npcap，安装时保留 WinPcap API 兼容。")
+        diagnosis.append("Npcap found 0 network adapters: Reinstall Npcap and ensure 'WinPcap API-compatible Mode' is enabled.")
 
     lines.append("")
-    lines.append("==== 实时采集状态 ====")
+    lines.append("==== Live Capture Status ====")
     before = _read_status_snapshot(status_path)
     _add_status_lines(lines, "sample1", before)
     if watch_seconds > 0:
-        lines.append(f"等待 {watch_seconds} 秒观察计数变化...")
+        lines.append(f"Waiting {watch_seconds}s to observe packet metrics...")
         time.sleep(watch_seconds)
     after = _read_status_snapshot(status_path)
     _add_status_lines(lines, "sample2", after)
@@ -523,38 +523,38 @@ def collect_diagnostic_report(watch_seconds: int = WATCH_SECONDS, game_port: int
     after_payload = after.payload or {}
     after_age = _status_age_seconds(after)
     if not after.exists:
-        diagnosis.append("没有实时状态文件：客户端可能没启动采集服务，或诊断器与客户端不是同一个 Windows 用户。")
+        diagnosis.append("No live status file found: Client capture service may not be running.")
     elif after.error:
-        diagnosis.append("实时状态文件损坏：重启客户端后再运行诊断器。")
+        diagnosis.append("Live status file is corrupt: Restart the client and run detector again.")
     else:
         state = str(after_payload.get("state") or "")
         if after_age is not None and after_age > 120:
-            diagnosis.append("实时状态文件超过 120 秒未更新：客户端采集服务可能已经停止。")
+            diagnosis.append("Live status file has not updated for >120s: Capture service may have stopped.")
         if state == "waiting_restart":
-            diagnosis.append("客户端提示需要重启游戏：保持客户端打开，完全退出游戏后再启动游戏。")
+            diagnosis.append("Client indicates game restart required: Keep client open, exit game completely, then relaunch game.")
         if _nested_int(after_payload, "log", "write_errors") > 0:
-            diagnosis.append("本地日志写入出现错误：检查日志目录权限，或换到普通英文路径。")
+            diagnosis.append("Local log file write error: Check directory permissions or choose a standard English directory path.")
         protocol_error_count = (
             _nested_int(after_payload, "metrics", "decompression_errors")
             + _nested_int(after_payload, "metrics", "protobuf_decode_errors")
         )
         if protocol_error_count > 0:
             diagnosis.append(
-                "协议解压或 protobuf 解码出现明确失败：保留 debug/issues 目录，优先检查客户端协议表与游戏版本是否一致。"
+                "Protocol decompression or protobuf decoding failed: Ensure protocol table matches current game version."
             )
         if game_pids and npcap_ok and delta["packets_seen"] <= 0 and delta["pcap_ps_recv"] <= 0:
-            diagnosis.append("观察期间没有抓到游戏包：检查是否选错网卡、VPN/代理/虚拟网卡影响，或先重新启动游戏。")
+            diagnosis.append("No game packets observed during sample: Check adapter selection, VPN/proxy conflicts, or restart game.")
         elif game_pids and delta["packets_seen"] > 0 and _nested_int(after_payload, "metrics", "frames_decoded") == 0:
-            diagnosis.append("能抓到包但没解出协议帧：通常是启动顺序不对，先开客户端再完整重启游戏。")
+            diagnosis.append("Packets captured but no protocol frames decoded: Start the client first, then launch the game.")
         elif (
             game_pids
             and _nested_int(after_payload, "metrics", "frames_decoded") > 0
             and protocol_error_count == 0
         ):
-            diagnosis.append("采集和解码看起来是活的；如果悬浮窗没数据，重点看是否进入战斗、日志是否有新事件。")
+            diagnosis.append("Packet capture and decoding are active. If overlay is empty, check if combat encounter has started.")
 
     lines.append("")
-    lines.append("==== 最近本地日志 ====")
+    lines.append("==== Recent Local Logs ====")
     log_dirs = [
         configured_log_dir,
         Path(str((after_payload.get("log") or {}).get("dir"))) if isinstance(after_payload.get("log"), dict) and (after_payload.get("log") or {}).get("dir") else None,
@@ -590,7 +590,7 @@ def collect_diagnostic_report(watch_seconds: int = WATCH_SECONDS, game_port: int
                 lines.append(f"  latest_summary_error={exc}")
 
     if latest_summary is None:
-        diagnosis.append("没有找到 session_*.ndjson：客户端还没有写出任何采集日志。")
+        diagnosis.append("No session_*.ndjson found: No capture logs written yet.")
     else:
         lines.append("")
         lines.append("latest_log_summary:")
@@ -602,21 +602,21 @@ def collect_diagnostic_report(watch_seconds: int = WATCH_SECONDS, game_port: int
         top_types = "; ".join(f"{name}={count}" for name, count in latest_summary.type_counts.most_common(12))
         lines.append(f"  top_types={top_types or '-'}")
         if latest_summary.loadout_rows <= 0:
-            diagnosis.append("最新日志没有 LOADOUT：队伍信息没读到，通常需要先进入角色/场景后再进战斗。")
+            diagnosis.append("Latest log has no LOADOUT: Team info missing. Enter character screen before combat.")
         if latest_summary.lines <= 0:
-            diagnosis.append("最新日志是空文件：采集服务创建了文件，但还没有收到可解析事件。")
+            diagnosis.append("Latest log is empty: File created but no parsable events received yet.")
         if (_now_ms() - int(latest_summary.mtime.timestamp() * 1000)) > 10 * 60 * 1000:
-            diagnosis.append("最新本地日志超过 10 分钟未更新：当前客户端可能没有持续采集。")
+            diagnosis.append("Latest local log has not updated in >10 minutes.")
 
     lines.append("")
-    lines.append("==== 快速结论 ====")
+    lines.append("==== Quick Summary ====")
     if diagnosis:
         for item in dict.fromkeys(diagnosis):
             lines.append(f"- {item}")
     else:
-        lines.append("- 没发现明显阻断项；如果仍然没数据，把这份报告连同出问题时间点发给维护者。")
+        lines.append("- No blocking issues found. If data is still missing, share this report with developers.")
     lines.append("")
-    lines.append("提示：报告包含本机路径、进程和连接信息；发给别人前可以自行遮掉用户名。")
+    lines.append("Note: Report contains local paths and process info; redact sensitive usernames before sharing.")
     return "\n".join(lines) + "\n"
 
 
@@ -652,7 +652,7 @@ def run_detector_app(argv: list[str] | None = None) -> int:
     try:
         report_path = write_diagnostic_report(args.out, max(0, int(args.watch_seconds)))
     except Exception as exc:  # noqa: BLE001 - detector should surface any unexpected failure.
-        _message_box("EndfieldLogsDetector", f"诊断失败：{type(exc).__name__}: {exc}")
+        _message_box("EndfieldLogsDetector", f"Diagnosis failed: {type(exc).__name__}: {exc}")
         raise
 
     if args.print_report:
@@ -663,5 +663,5 @@ def run_detector_app(argv: list[str] | None = None) -> int:
         except OSError:
             pass
     if not args.no_messagebox:
-        _message_box("EndfieldLogsDetector", f"诊断完成，报告已生成：\n{report_path}")
+        _message_box("EndfieldLogsDetector", f"Diagnosis completed. Report generated:\n{report_path}")
     return 0

@@ -116,3 +116,35 @@ def test_app_config_language_persistence(tmp_path: Path) -> None:
     # Verify JSON structure
     raw = json.loads(config_file.read_text(encoding="utf-8"))
     assert raw["language"] == "zh"
+
+
+def test_overlay_dungeon_and_char_localization() -> None:
+    from overlay import friendly_name, localize_dungeon_name
+
+    # Dungeon localization (en & zh)
+    assert localize_dungeon_name("危境再现·罗丹", "en") == "Crisis Replay: Rhodagn"
+    assert localize_dungeon_name("Crisis Replay: Rhodagn", "zh") == "危境再现·罗丹"
+    assert localize_dungeon_name("dung01_group_bossrush01", "en") == "Crisis Replay: Rhodagn"
+    assert localize_dungeon_name("dung01_group_bossrush01", "zh") == "危境再现·罗丹"
+
+    assert localize_dungeon_name("仪式旋流·苦难", "en") == "Ritual Vortex (Agony)"
+    assert localize_dungeon_name("Ritual Vortex (Agony)", "zh") == "仪式旋流·苦难"
+    assert localize_dungeon_name("indie_hard016_s", "en") == "Ritual Vortex (Agony)"
+    assert localize_dungeon_name("indie_hard016_s", "zh") == "仪式旋流·苦难"
+
+    assert localize_dungeon_name("影拓丰碑1期 · 灼痛疤痕", "en") == "Umbral Monument: Phase 1 · Searing Scars"
+    assert localize_dungeon_name("Umbral Monument: Phase 1 · Searing Scars", "zh") == "影拓丰碑1期 · 灼痛疤痕"
+
+    assert localize_dungeon_name("白刃穿水·残酷", "en") == "Silver Watercutter: Brutal"
+    assert localize_dungeon_name("Silver Watercutter: Brutal", "zh") == "白刃穿水·残酷"
+
+    # Friendly char name (en & zh)
+    assert friendly_name("chr_0004_pelica", locale="en") == "Perlica"
+    assert friendly_name("chr_0004_pelica", locale="zh") == "佩丽卡"
+    assert friendly_name("佩丽卡", locale="en") == "Perlica"
+    assert friendly_name("Perlica", locale="zh") == "佩丽卡"
+    assert friendly_name("chr_0016_laevat", locale="en") == "Laevatain"
+    assert friendly_name("chr_0016_laevat", locale="zh") == "莱万汀"
+    assert friendly_name("chr_0033_camille", locale="en") == "Camille"
+    assert friendly_name("chr_0033_camille", locale="zh") == "卡缪"
+

@@ -394,6 +394,10 @@ def main() -> int:
         trace_enabled=not bool(args.no_trace),
         merge_multi_phase_enemy_battles=bool(args.merge_multi_phase_enemy_battles),
     )
+    from .npcap_setup import prompt_npcap_install_interactive
+
+    if not prompt_npcap_install_interactive():
+        return 0
     if args.no_overlay:
         service = DamageLogService(config)
         asyncio.run(service.run())

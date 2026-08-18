@@ -54,17 +54,17 @@ class TraceImportView(QWidget):
         header_layout.setContentsMargins(24, 22, 24, 22)
         header_layout.setSpacing(8)
 
-        eyebrow = QLabel(tr("import_eyebrow"))
-        eyebrow.setObjectName("workflowEyebrow")
-        title = QLabel(tr("import_title"))
-        title.setObjectName("workflowTitle")
-        title.setWordWrap(True)
-        description = QLabel(tr("import_body"))
-        description.setObjectName("workflowBody")
-        description.setWordWrap(True)
-        header_layout.addWidget(eyebrow)
-        header_layout.addWidget(title)
-        header_layout.addWidget(description)
+        self.eyebrow = QLabel(tr("import_eyebrow"))
+        self.eyebrow.setObjectName("workflowEyebrow")
+        self.title = QLabel(tr("import_title"))
+        self.title.setObjectName("workflowTitle")
+        self.title.setWordWrap(True)
+        self.description = QLabel(tr("import_body"))
+        self.description.setObjectName("workflowBody")
+        self.description.setWordWrap(True)
+        header_layout.addWidget(self.eyebrow)
+        header_layout.addWidget(self.title)
+        header_layout.addWidget(self.description)
 
         drop_zone = QFrame()
         drop_zone.setObjectName("dropZone")
@@ -79,21 +79,21 @@ class TraceImportView(QWidget):
 
         file_column = QVBoxLayout()
         file_column.setSpacing(6)
-        file_column_title = QLabel(tr("import_file_section"))
-        file_column_title.setObjectName("sectionTitle")
+        self.file_column_title = QLabel(tr("import_file_section"))
+        self.file_column_title.setObjectName("sectionTitle")
         self.file_label = QLabel(tr("import_no_file"))
         self.file_label.setObjectName("fileLabel")
         self.file_label.setWordWrap(True)
         self.integrity_label = QLabel("")
         self.integrity_label.setObjectName("integrityLabel")
         self.integrity_label.setWordWrap(True)
-        drop_hint = QLabel(tr("import_drop_hint"))
-        drop_hint.setObjectName("dropHint")
-        drop_hint.setWordWrap(True)
-        file_column.addWidget(file_column_title)
+        self.drop_hint = QLabel(tr("import_drop_hint"))
+        self.drop_hint.setObjectName("dropHint")
+        self.drop_hint.setWordWrap(True)
+        file_column.addWidget(self.file_column_title)
         file_column.addWidget(self.file_label)
         file_column.addWidget(self.integrity_label)
-        file_column.addWidget(drop_hint)
+        file_column.addWidget(self.drop_hint)
         drop_layout.addWidget(badge, 0, Qt.AlignmentFlag.AlignTop)
         drop_layout.addLayout(file_column, 1)
 
@@ -102,8 +102,8 @@ class TraceImportView(QWidget):
         progress_layout = QVBoxLayout(self.progress_panel)
         progress_layout.setContentsMargins(18, 14, 18, 14)
         progress_layout.setSpacing(8)
-        progress_title = QLabel(tr("import_progress_title"))
-        progress_title.setObjectName("sectionTitle")
+        self.progress_title = QLabel(tr("import_progress_title"))
+        self.progress_title.setObjectName("sectionTitle")
         self.progress_label = QLabel("")
         self.progress_label.setObjectName("progressLabel")
         self.progress_bar = QProgressBar()
@@ -113,7 +113,7 @@ class TraceImportView(QWidget):
         self.message_label.setObjectName("messageLabel")
         self.message_label.setWordWrap(True)
         self.message_label.hide()
-        progress_layout.addWidget(progress_title)
+        progress_layout.addWidget(self.progress_title)
         progress_layout.addWidget(self.progress_label)
         progress_layout.addWidget(self.progress_bar)
 
@@ -172,6 +172,34 @@ class TraceImportView(QWidget):
         self.parse_button.clicked.connect(lambda: self.parse_requested.emit())
         self.resume_monitoring_button.clicked.connect(lambda: self.resume_monitoring_requested.emit())
         self.logout_button.clicked.connect(lambda: self.logout_requested.emit())
+
+    def retranslate_ui(self) -> None:
+        if hasattr(self, "eyebrow"):
+            self.eyebrow.setText(tr("import_eyebrow"))
+        if hasattr(self, "title"):
+            self.title.setText(tr("import_title"))
+        if hasattr(self, "description"):
+            self.description.setText(tr("import_body"))
+        if hasattr(self, "file_column_title"):
+            self.file_column_title.setText(tr("import_file_section"))
+        if hasattr(self, "file_label"):
+            self.file_label.setText(
+                tr("import_current_file", file=self._selected_file_name)
+                if self._selected_file_name
+                else tr("import_no_file")
+            )
+        if hasattr(self, "drop_hint"):
+            self.drop_hint.setText(tr("import_drop_hint"))
+        if hasattr(self, "progress_title"):
+            self.progress_title.setText(tr("import_progress_title"))
+        if hasattr(self, "choose_button"):
+            self.choose_button.setText(tr("import_btn_choose"))
+        if hasattr(self, "parse_button"):
+            self.parse_button.setText(tr("import_btn_parse"))
+        if hasattr(self, "resume_monitoring_button"):
+            self.resume_monitoring_button.setText(tr("import_btn_resume_monitor"))
+        if hasattr(self, "logout_button"):
+            self.logout_button.setText(tr("logout"))
 
     def set_resume_monitoring_available(self, available: bool) -> None:
         self.resume_monitoring_button.setVisible(available)

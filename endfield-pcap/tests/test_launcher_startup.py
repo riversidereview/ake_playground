@@ -10,6 +10,12 @@ import launcher
 from endfield_pcap import runner
 
 
+@pytest.fixture(autouse=True)
+def _mock_npcap_prompt(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("endfield_pcap.npcap_setup.prompt_npcap_install_interactive", lambda: True)
+    monkeypatch.setattr("launcher.prompt_npcap_install_interactive", lambda: True)
+
+
 def _game_dir(tmp_path: Path) -> Path:
     game_dir = tmp_path / "Endfield Game"
     game_dir.mkdir()
@@ -69,7 +75,7 @@ def test_cancelled_game_path_does_not_enter_cli_or_start_any_child(monkeypatch, 
     assert launcher.run() == 1
     assert logs == ["game path setup cancelled; startup aborted before uploader launch"]
     assert len(messages) == 1
-    assert "客户端和上传器均未启动" in messages[0][1]
+    assert "startup aborted" in messages[0][1].lower()
 
 
 def test_default_launch_surfaces_invisible_startup_failure(monkeypatch, tmp_path: Path) -> None:

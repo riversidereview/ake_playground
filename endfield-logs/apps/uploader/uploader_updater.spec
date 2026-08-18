@@ -16,7 +16,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=["tkinter", "unittest", "sqlite3", "pydoc", "setuptools", "distutils"],
     noarchive=False,
 )
 pyz = PYZ(a.pure)

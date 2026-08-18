@@ -11,7 +11,20 @@ from app.services.api_client import SAFE_ACCEPT_ENCODING, ApiClient, ApiClientEr
 from app.services.settings_store import SettingsStore, UploaderSettings
 from app.state.store import AuthSession, BattleCandidate, UploaderStore
 from app.ui.assets import asset_path
-from app.ui.i18n import get_locale, set_locale, tr
+from app.ui.i18n import (
+    BOSS_NAME_EN,
+    BOSS_NAME_ZH,
+    CHARACTER_NAME_EN,
+    CHARACTER_NAME_ZH,
+    DUNGEON_NAME_EN,
+    DUNGEON_NAME_ZH,
+    get_locale,
+    localize_boss_name,
+    localize_character_name,
+    localize_dungeon_name,
+    set_locale,
+    tr,
+)
 from app.ui.main_window import MainWindow, ParseTraceWorker, _battle_payload_is_completed
 from app.ui.views.battle_upload_view import BattleUploadView
 from app.ui.views.login_view import LoginView
@@ -1429,3 +1442,177 @@ def test_settings_store_defaults_to_english(tmp_path, monkeypatch) -> None:
     store = SettingsStore()
     settings = store.load_settings()
     assert settings.language == "en"
+
+
+def test_i18n_dungeon_name_full_coverage() -> None:
+    # 1. 危境再现系列 (1-10)
+    assert localize_dungeon_name("危境再现·罗丹", "en") == "Crisis Replay: Rhodagn"
+    assert localize_dungeon_name("Crisis Replay: Rhodagn", "zh") == "危境再现·罗丹"
+    assert localize_dungeon_name("dung01_group_bossrush01", "en") == "Crisis Replay: Rhodagn"
+    assert localize_dungeon_name("dung01_group_bossrush01", "zh") == "危境再现·罗丹"
+
+    assert localize_dungeon_name("危境再现·三位一体", "en") == "Crisis Replay: Triaggelos"
+    assert localize_dungeon_name("Crisis Replay: Triaggelos", "zh") == "危境再现·三位一体"
+    assert localize_dungeon_name("dung01_group_bossrush02", "en") == "Crisis Replay: Triaggelos"
+
+    assert localize_dungeon_name("危境再现·白垩界卫", "en") == "Crisis Replay: Marble Aggelomoirai"
+    assert localize_dungeon_name("Crisis Replay: Marble Aggelomoirai", "zh") == "危境再现·白垩界卫"
+
+    assert localize_dungeon_name("危境延影·阿莱克琉斯", "en") == "Crisis Phantasm: Alleikhreos"
+    assert localize_dungeon_name("Crisis Phantasm: Alleikhreos", "zh") == "危境延影·阿莱克琉斯"
+
+    assert localize_dungeon_name("危境祸影·阿莱克琉斯", "en") == "Crisis Calamity: Alleikhreos"
+    assert localize_dungeon_name("Crisis Calamity: Alleikhreos", "zh") == "危境祸影·阿莱克琉斯"
+
+    assert localize_dungeon_name("危境遗影·阿莱克琉斯", "en") == "Crisis Vestige: Alleikhreos"
+    assert localize_dungeon_name("Crisis Vestige: Alleikhreos", "zh") == "危境遗影·阿莱克琉斯"
+
+    # 2. 危境碎片系列 (11-15)
+    assert localize_dungeon_name("危境碎片·巨山犼兽", "en") == "Crisis Fragments: Craghowler"
+    assert localize_dungeon_name("Crisis Fragments: Craghowler", "zh") == "危境碎片·巨山犼兽"
+    assert localize_dungeon_name("dung02_group_minibossrush01", "en") == "Crisis Fragments: Craghowler"
+
+    assert localize_dungeon_name("危境碎片·蚀影噪雷", "en") == "Crisis Fragments: Blitzcrash Blightshade"
+    assert localize_dungeon_name("Crisis Fragments: Blitzcrash Blightshade", "zh") == "危境碎片·蚀影噪雷"
+
+    assert localize_dungeon_name("碎片延影·蚀影噪雷", "en") == "Fragment Phantasm: Blitzcrash Blightshade"
+    assert localize_dungeon_name("Fragment Phantasm: Blitzcrash Blightshade", "zh") == "碎片延影·蚀影噪雷"
+
+    # 3. 影拓丰碑系列 (16-31)
+    assert localize_dungeon_name("影拓丰碑1期", "en") == "Umbral Monument: Phase 1"
+    assert localize_dungeon_name("Umbral Monument: Phase 1", "zh") == "影拓丰碑1期"
+    assert localize_dungeon_name("影拓丰碑1期 · 灼痛疤痕", "en") == "Umbral Monument: Phase 1 · Searing Scars"
+    assert localize_dungeon_name("Umbral Monument: Phase 1 · Searing Scars", "zh") == "影拓丰碑1期 · 灼痛疤痕"
+    assert localize_dungeon_name("影拓丰碑4期 · 山中见犼", "en") == "Umbral Monument: Phase 4 · Hou in the Mountains"
+    assert localize_dungeon_name("Umbral Monument: Phase 4 · Hou in the Mountains", "zh") == "影拓丰碑4期 · 山中见犼"
+
+    # 4. 战争回响系列 (32-64)
+    assert localize_dungeon_name("白刃穿水·普通", "en") == "Silver Watercutter: Normal"
+    assert localize_dungeon_name("Silver Watercutter: Normal", "zh") == "白刃穿水·普通"
+    assert localize_dungeon_name("白刃穿水·残酷", "en") == "Silver Watercutter: Brutal"
+    assert localize_dungeon_name("Silver Watercutter: Brutal", "zh") == "白刃穿水·残酷"
+    assert localize_dungeon_name("indie_battletower001_ex", "en") == "Silver Watercutter: Brutal"
+    assert localize_dungeon_name("indie_battletower001_ex", "zh") == "白刃穿水·残酷"
+
+    assert localize_dungeon_name("斧柄纪年·残酷", "en") == "Age of Axes: Brutal"
+    assert localize_dungeon_name("Age of Axes: Brutal", "zh") == "斧柄纪年·残酷"
+    assert localize_dungeon_name("indie_battletower004_ex", "en") == "Age of Axes: Brutal"
+
+    # 5. 高难苦难关卡系列 (65-86)
+    assert localize_dungeon_name("仪式旋流·苦难", "en") == "Ritual Vortex (Agony)"
+    assert localize_dungeon_name("Ritual Vortex (Agony)", "zh") == "仪式旋流·苦难"
+    assert localize_dungeon_name("indie_hard016_s", "en") == "Ritual Vortex (Agony)"
+    assert localize_dungeon_name("indie_hard016_s", "zh") == "仪式旋流·苦难"
+
+    assert localize_dungeon_name("怨憎雾海·苦难", "en") == "Sea of Rancor and Mist (Agony)"
+    assert localize_dungeon_name("Sea of Rancor and Mist (Agony)", "zh") == "怨憎雾海·苦难"
+    assert localize_dungeon_name("indie_hard008_s", "en") == "Sea of Rancor and Mist (Agony)"
+
+    assert localize_dungeon_name("撼山雾火·苦难", "en") == "Earthshaking Hazefyre (Agony)"
+    assert localize_dungeon_name("Earthshaking Hazefyre (Agony)", "zh") == "撼山雾火·苦难"
+    assert localize_dungeon_name("indie_hard022_s", "en") == "Earthshaking Hazefyre (Agony)"
+
+    # 6. 协议空间系列 (87-98)
+    assert localize_dungeon_name("协议空间·干员进阶", "en") == "Protocol Space: Operator Promotion"
+    assert localize_dungeon_name("Protocol Space: Operator Promotion", "zh") == "协议空间·干员进阶"
+    assert localize_dungeon_name("协议空间·高阶培养Ⅰ", "en") == "Protocol Space: Advanced Training I"
+    assert localize_dungeon_name("Protocol Space: Advanced Training I", "zh") == "协议空间·高阶培养Ⅰ"
+
+    # 7. 活动 / 默认项
+    assert localize_dungeon_name("危机合约", "en") == "Contingency Contract"
+    assert localize_dungeon_name("Contingency Contract", "zh") == "危机合约"
+    assert localize_dungeon_name("indie_group_ccdg", "en") == "Contingency Contract"
+    assert localize_dungeon_name("indie_group_ccdg", "zh") == "危机合约"
+    assert localize_dungeon_name(None, "en") == "Unknown Encounter"
+    assert localize_dungeon_name(None, "zh") == "未知场地"
+
+
+def test_i18n_character_and_boss_localization() -> None:
+    # Characters (31 operators)
+    assert localize_character_name("chr_0004_pelica", "en") == "Perlica"
+    assert localize_character_name("chr_0004_pelica", "zh") == "佩丽卡"
+    assert localize_character_name("佩丽卡", "en") == "Perlica"
+    assert localize_character_name("Perlica", "zh") == "佩丽卡"
+
+    assert localize_character_name("chr_0016_laevat", "en") == "Laevatain"
+    assert localize_character_name("chr_0016_laevat", "zh") == "莱万汀"
+    assert localize_character_name("莱万汀", "en") == "Laevatain"
+    assert localize_character_name("Laevatain", "zh") == "莱万汀"
+
+    assert localize_character_name("chr_0033_camille", "en") == "Camille"
+    assert localize_character_name("chr_0033_camille", "zh") == "卡缪"
+
+    # Bosses
+    assert localize_boss_name("“碾骨之拳”罗丹", "en") == "Rhodagn the Bonekrushing Fist"
+    assert localize_boss_name("Rhodagn the Bonekrushing Fist", "zh") == "“碾骨之拳”罗丹"
+    assert localize_boss_name("eny_0051_rodin", "en") == "Rhodagn the Bonekrushing Fist"
+    assert localize_boss_name("eny_0051_rodin", "zh") == "“碾骨之拳”罗丹"
+
+    assert localize_boss_name("三位一体", "en") == "Triaggelos"
+    assert localize_boss_name("Triaggelos", "zh") == "三位一体"
+    assert localize_boss_name("eny_0045_agtrinit", "en") == "Triaggelos"
+
+    assert localize_boss_name("白垩界卫", "en") == "Marble Aggelomoirai"
+    assert localize_boss_name("Marble Aggelomoirai", "zh") == "白垩界卫"
+
+    assert localize_boss_name("阿莱克琉斯，千夫长", "en") == "Alleikhreos, Chiliarch"
+    assert localize_boss_name("Alleikhreos, Chiliarch", "zh") == "阿莱克琉斯，千夫长"
+
+
+def test_ui_views_retranslate_dynamic_switching() -> None:
+    app = QApplication.instance() or QApplication([])
+
+    # 1. TraceImportView retranslation
+    trace_view = TraceImportView()
+    set_locale("en")
+    trace_view.retranslate_ui()
+    assert trace_view.eyebrow.text() == "TRACE IMPORT"
+    assert trace_view.title.text() == "Import Endfield Combat Logs"
+    assert trace_view.choose_button.text() == "Select Log File"
+    assert trace_view.parse_button.text() == "Start Parsing"
+    assert trace_view.logout_button.text() == "Log Out"
+
+    set_locale("zh")
+    trace_view.retranslate_ui()
+    assert trace_view.eyebrow.text() == "TRACE IMPORT"
+    assert trace_view.title.text() == "导入 Endfield battle 日志"
+    assert trace_view.choose_button.text() == "选择日志文件"
+    assert trace_view.parse_button.text() == "开始解析"
+    assert trace_view.logout_button.text() == "退出登录"
+
+    # 2. BattleUploadView retranslation
+    battle_view = BattleUploadView()
+    set_locale("en")
+    battle_view.retranslate_ui()
+    assert battle_view.title.text() == "Select, Filter & Upload Battles"
+    assert battle_view.summary_title.text() == "Parsed Results Summary"
+    assert battle_view.search_input.placeholderText() == "Filter by Boss / Dungeon / Team"
+    assert battle_view.status_filter.itemText(0) == "All Statuses"
+    assert battle_view.status_filter.itemText(1) == "Ready to Upload"
+    assert battle_view.sort_order.itemText(0) == "By Encounter Order"
+    assert battle_view.select_all_button.text() == "Select All"
+    assert battle_view.upload_button.text() == "Upload Selected"
+
+    set_locale("zh")
+    battle_view.retranslate_ui()
+    assert battle_view.title.text() == "选择、筛选并上传 battle 记录"
+    assert battle_view.summary_title.text() == "当前解析结果"
+    assert battle_view.search_input.placeholderText() == "筛选首领 / 副本 / 阵容"
+    assert battle_view.status_filter.itemText(0) == "全部状态"
+    assert battle_view.status_filter.itemText(1) == "仅可上传"
+    assert battle_view.sort_order.itemText(0) == "按场次"
+    assert battle_view.select_all_button.text() == "全选"
+    assert battle_view.upload_button.text() == "上传所选"
+
+    # 3. LoginView retranslation
+    login_view = LoginView()
+    set_locale("en")
+    login_view.retranslate_ui()
+    assert login_view.card_title.text() == "Log in to Endfield Logs"
+    assert login_view.login_button.text() == "Log In"
+
+    set_locale("zh")
+    login_view.retranslate_ui()
+    assert login_view.card_title.text() == "登录 Endfield Logs 上传器"
+    assert login_view.login_button.text() == "登录"
+

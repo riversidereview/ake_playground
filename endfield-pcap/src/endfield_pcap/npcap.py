@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ctypes
 import logging
+import os
 import socket
 import threading
 from ctypes import POINTER
@@ -27,10 +28,39 @@ _AUTO_NO_IPV4_DESCRIPTION_HINTS = (
 )
 
 
+def find_wpcap_dll() -> str | None:
+    system_root = os.environ.get("SystemRoot", r"C:\Windows")
+    program_files = os.environ.get("ProgramFiles", r"C:\Program Files")
+    candidates = [
+        os.path.join(system_root, "System32", "Npcap", "wpcap.dll"),
+        os.path.join(system_root, "System32", "wpcap.dll"),
+        os.path.join(program_files, "Npcap", "wpcap.dll"),
+    ]
+    for candidate in candidates:
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+def load_wpcap_dll() -> ctypes.WinDLL:
+    dll_path = find_wpcap_dll()
+    if dll_path is None:
+        dll_path = "wpcap.dll"
+    npcap_dir = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32", "Npcap")
+    if os.path.isdir(npcap_dir) and hasattr(os, "add_dll_directory"):
+        try:
+            os.add_dll_directory(npcap_dir)
+        except (OSError, Exception):
+            pass
+    return ctypes.WinDLL(dll_path)
+
+
 def has_npcap() -> bool:
     try:
-        ctypes.WinDLL("wpcap.dll")
-    except OSError:
+        if find_wpcap_dll() is not None:
+            return True
+        load_wpcap_dll()
+    except (OSError, Exception, BaseException):
         return False
     return True
 
@@ -194,7 +224,7 @@ def _parse_ipv4_from_capture(raw: bytes) -> dpkt.ip.IP | None:
 
 class Wpcap:
     def __init__(self) -> None:
-        self._dll = ctypes.WinDLL("wpcap.dll")
+        self._dll = load_wpcap_dll()
         self._dll.pcap_findalldevs.argtypes = [POINTER(POINTER(pcap_if_t)), ctypes.c_char_p]
         self._dll.pcap_findalldevs.restype = ctypes.c_int
         self._dll.pcap_freealldevs.argtypes = [POINTER(pcap_if_t)]
@@ -425,6 +455,31 @@ class CaptureHandle:
             self._on_packet(captured)
 
 
+class NullCaptureManager:
+    """Fallback capture manager used when Npcap is not installed."""
+
+    def __init__(self, requested_device: str = "") -> None:
+        self.device_name = requested_device or "null"
+
+    def start(self) -> None:
+        LOGGER.info("Npcap not available; NullCaptureManager active (offline mode).")
+
+    def stop(self) -> None:
+        pass
+
+    def lock_to_flow(self, flow: FlowKey, observed_device_names: set[str]) -> None:
+        pass
+
+    def restore_default_filters(self) -> None:
+        pass
+
+    def stats_snapshot(self) -> dict[str, int]:
+        return {"ps_recv": 0, "ps_drop": 0, "ps_ifdrop": 0}
+
+    def device_snapshot(self) -> list[dict[str, object]]:
+        return []
+
+
 class CaptureManager:
     def __init__(self, api: Wpcap, devices: list[DeviceInfo], on_packet: Callable[[CapturedPacket], None]) -> None:
         self._api = api
@@ -436,16 +491,22 @@ class CaptureManager:
         self._handles = self._build_handles(devices, DEFAULT_BPF_FILTER)
 
     @classmethod
-    def create(cls, requested_device: str, on_packet: Callable[[CapturedPacket], None]) -> "CaptureManager":
-        api = Wpcap()
-        devices = api.list_devices()
-        selected = _select_requested_devices(devices, requested_device)
-        if not selected:
-            raise RuntimeError(
-                f"no Npcap devices matched {requested_device!r}. Available devices:\n{_format_device_list(devices)}"
-            )
-        LOGGER.info("opening %d Npcap device(s)", len(selected))
-        return cls(api, selected, on_packet)
+    def create(cls, requested_device: str, on_packet: Callable[[CapturedPacket], None]) -> "CaptureManager | NullCaptureManager":
+        if not has_npcap():
+            LOGGER.warning("Npcap is not installed; returning NullCaptureManager")
+            return NullCaptureManager(requested_device)
+        try:
+            api = Wpcap()
+            devices = api.list_devices()
+            selected = _select_requested_devices(devices, requested_device)
+            if not selected:
+                LOGGER.warning("no Npcap devices matched %r; returning NullCaptureManager", requested_device)
+                return NullCaptureManager(requested_device)
+            LOGGER.info("opening %d Npcap device(s)", len(selected))
+            return cls(api, selected, on_packet)
+        except Exception:
+            LOGGER.warning("failed to initialize Npcap capture manager; falling back to NullCaptureManager", exc_info=True)
+            return NullCaptureManager(requested_device)
 
     def start(self) -> None:
         for handle in self._snapshot_handles():

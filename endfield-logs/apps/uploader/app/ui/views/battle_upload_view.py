@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 )
 
 from app.state.store import BattleCandidate
-from app.ui.i18n import tr
+from app.ui.i18n import localize_boss_name, localize_character_name, localize_dungeon_name, tr
 from app.ui.theme import WORKFLOW_STYLE, install_shadow, set_message_label, set_pointing_hand
 
 
@@ -58,29 +58,29 @@ class BattleUploadView(QWidget):
         header_layout.setContentsMargins(24, 20, 24, 20)
         header_layout.setSpacing(7)
 
-        eyebrow = QLabel(tr("upload_eyebrow"))
-        eyebrow.setObjectName("workflowEyebrow")
-        title = QLabel(tr("upload_title"))
-        title.setObjectName("workflowTitle")
-        title.setWordWrap(True)
-        description = QLabel(tr("upload_body"))
-        description.setObjectName("workflowBody")
-        description.setWordWrap(True)
-        header_layout.addWidget(eyebrow)
-        header_layout.addWidget(title)
-        header_layout.addWidget(description)
+        self.eyebrow = QLabel(tr("upload_eyebrow"))
+        self.eyebrow.setObjectName("workflowEyebrow")
+        self.title = QLabel(tr("upload_title"))
+        self.title.setObjectName("workflowTitle")
+        self.title.setWordWrap(True)
+        self.description = QLabel(tr("upload_body"))
+        self.description.setObjectName("workflowBody")
+        self.description.setWordWrap(True)
+        header_layout.addWidget(self.eyebrow)
+        header_layout.addWidget(self.title)
+        header_layout.addWidget(self.description)
 
         summary_panel = QFrame()
         summary_panel.setObjectName("summaryPanel")
         summary_layout = QVBoxLayout(summary_panel)
         summary_layout.setContentsMargins(18, 13, 18, 13)
         summary_layout.setSpacing(5)
-        summary_title = QLabel(tr("upload_summary_title"))
-        summary_title.setObjectName("sectionTitle")
+        self.summary_title = QLabel(tr("upload_summary_title"))
+        self.summary_title.setObjectName("sectionTitle")
         self.summary_label = QLabel("")
         self.summary_label.setObjectName("summaryLabel")
         self.summary_label.setWordWrap(True)
-        summary_layout.addWidget(summary_title)
+        summary_layout.addWidget(self.summary_title)
         summary_layout.addWidget(self.summary_label)
 
         filter_panel = QFrame()
@@ -259,6 +259,71 @@ class BattleUploadView(QWidget):
         self.list_widget.itemChanged.connect(self._on_item_changed)
         self.list_widget.currentItemChanged.connect(lambda *_: self._sync_buttons())
 
+    def retranslate_ui(self) -> None:
+        if hasattr(self, "eyebrow"):
+            self.eyebrow.setText(tr("upload_eyebrow"))
+        if hasattr(self, "title"):
+            self.title.setText(tr("upload_title"))
+        if hasattr(self, "description"):
+            self.description.setText(tr("upload_body"))
+        if hasattr(self, "summary_title"):
+            self.summary_title.setText(tr("upload_summary_title"))
+        if hasattr(self, "search_input"):
+            self.search_input.setPlaceholderText(tr("upload_search_placeholder"))
+        if hasattr(self, "status_filter"):
+            status_labels = {
+                "all": tr("filter_status_all"),
+                "ready": tr("filter_status_ready"),
+                "existing": tr("filter_status_existing"),
+                "success": tr("filter_status_success"),
+                "failed": tr("filter_status_failed"),
+            }
+            self.status_filter.blockSignals(True)
+            for i in range(self.status_filter.count()):
+                key = self.status_filter.itemData(i)
+                if key in status_labels:
+                    self.status_filter.setItemText(i, status_labels[key])
+            self.status_filter.blockSignals(False)
+        if hasattr(self, "sort_order"):
+            sort_labels = {
+                "index": tr("filter_sort_index"),
+                "dur_asc": tr("filter_sort_dur_asc"),
+                "dur_desc": tr("filter_sort_dur_desc"),
+                "boss": tr("filter_sort_boss"),
+            }
+            self.sort_order.blockSignals(True)
+            for i in range(self.sort_order.count()):
+                key = self.sort_order.itemData(i)
+                if key in sort_labels:
+                    self.sort_order.setItemText(i, sort_labels[key])
+            self.sort_order.blockSignals(False)
+        if hasattr(self, "show_uncleared_checkbox"):
+            self.show_uncleared_checkbox.setText(tr("filter_show_uncleared"))
+            self.show_uncleared_checkbox.setToolTip(tr("filter_show_uncleared_tooltip"))
+        if hasattr(self, "select_all_button"):
+            self.select_all_button.setText(tr("btn_select_all"))
+        if hasattr(self, "clear_selection_button"):
+            self.clear_selection_button.setText(tr("btn_clear_selection"))
+        if hasattr(self, "upload_button"):
+            self.upload_button.setText(tr("btn_upload_selected"))
+        if hasattr(self, "upload_current_button"):
+            self.upload_current_button.setText(tr("btn_upload_current"))
+        if hasattr(self, "reupload_button"):
+            self.reupload_button.setText(tr("btn_reupload_current"))
+            self.reupload_button.setToolTip(tr("btn_reupload_tooltip"))
+        if hasattr(self, "retry_failed_button"):
+            self.retry_failed_button.setText(tr("btn_retry_failed"))
+        if hasattr(self, "open_record_button"):
+            self.open_record_button.setText(tr("btn_open_record"))
+        if hasattr(self, "back_button"):
+            self.back_button.setText(tr("btn_back"))
+        if hasattr(self, "logout_button"):
+            self.logout_button.setText(tr("logout"))
+        if hasattr(self, "start_game_button"):
+            self.start_game_button.setText(tr("btn_start_game"))
+            self.start_game_button.setToolTip(tr("launch_game_tooltip"))
+        self._render_candidates()
+
     def set_busy(self, busy: bool) -> None:
         self.search_input.setEnabled(not busy)
         self.status_filter.setEnabled(not busy)
@@ -403,8 +468,11 @@ class BattleUploadView(QWidget):
                 haystack = " ".join(
                     [
                         candidate.boss_name,
+                        localize_boss_name(candidate.boss_name, "en"),
                         candidate.dungeon_name,
+                        localize_dungeon_name(candidate.dungeon_name, "en"),
                         " ".join(candidate.roster_names),
+                        " ".join([localize_character_name(r, "en") for r in candidate.roster_names]),
                     ]
                 ).lower()
                 if query not in haystack:
@@ -443,7 +511,8 @@ class BattleUploadView(QWidget):
 
     def _format_candidate_text(self, candidate: BattleCandidate) -> str:
         battle = candidate.payload.get("battle") or {}
-        roster_text = " / ".join(candidate.roster_names)
+        localized_roster = [localize_character_name(name) for name in candidate.roster_names]
+        roster_text = " / ".join(localized_roster)
         status_bits: list[str] = []
         if candidate.duplicate:
             status_bits.append(tr("status_duplicate"))
@@ -477,8 +546,8 @@ class BattleUploadView(QWidget):
         header = tr(
             "candidate_enc_header",
             idx=candidate.source_battle_index,
-            boss=candidate.boss_name,
-            dungeon=candidate.dungeon_name,
+            boss=localize_boss_name(candidate.boss_name),
+            dungeon=localize_dungeon_name(candidate.dungeon_name),
             duration=candidate.duration_ms / 1000,
             status=clear_status,
         )

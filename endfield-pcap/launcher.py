@@ -25,6 +25,7 @@ _bootstrap_paths()
 
 from endfield_pcap.cli import main
 from endfield_pcap.game_path import ensure_configured_game_dir_interactive
+from endfield_pcap.npcap_setup import prompt_npcap_install_interactive
 from endfield_pcap.trace_bridge import make_archive_trace_file
 from endfield_pcap.update import check_and_maybe_start_update
 
@@ -54,7 +55,7 @@ def _ensure_desktop_shortcut_once() -> None:
         if not desktop.exists():
             marker.write_text("no-desktop", encoding="utf-8")
             return
-        shortcut_path = desktop / "Endfield Logs 客户端.lnk"
+        shortcut_path = desktop / "Endfield Logs Client.lnk"
         if not shortcut_path.exists():
             ps_script = (
                 "$w = New-Object -ComObject WScript.Shell; "
@@ -108,24 +109,26 @@ def _prepare_default_launch() -> int | None:
     if check_and_maybe_start_update():
         return 0
     _ensure_desktop_shortcut_once()
+    if not prompt_npcap_install_interactive():
+        return 0
     try:
         game_dir = ensure_configured_game_dir_interactive()
     except Exception as exc:  # noqa: BLE001 - frozen startup must surface the failure.
         details = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
         log_path = _write_startup_log(f"game path setup failed\n{details}")
         _show_startup_message(
-            "Endfield Logs 客户端启动失败",
-            f"游戏路径初始化失败，客户端和上传器均未启动。\n\n错误：{type(exc).__name__}: {exc}\n\n日志：{log_path}",
+            "Endfield Logs Client - Startup Error",
+            f"Game path initialization failed. Client and uploader startup aborted.\n\nError: {type(exc).__name__}: {exc}\n\nLog: {log_path}",
             error=True,
         )
         return 1
     if game_dir is None:
         log_path = _write_startup_log("game path setup cancelled; startup aborted before uploader launch")
         _show_startup_message(
-            "Endfield Logs 客户端未启动",
-            "尚未选择有效的终末地游戏目录，客户端和上传器均未启动。\n\n"
-            "请重新运行 EndfieldLogsClient.exe，并选择包含 Endfield.exe 和 GameAssembly.dll 的 Endfield Game 目录。\n\n"
-            f"日志：{log_path}",
+            "Endfield Logs Client - Game Path Not Selected",
+            "No valid Endfield Game directory was selected. Client and uploader startup aborted.\n\n"
+            "Please relaunch EndfieldLogsClient.exe and select the directory containing Endfield.exe and GameAssembly.dll.\n\n"
+            f"Log: {log_path}",
         )
         return 1
 
@@ -157,11 +160,11 @@ def run() -> int:
         code = int(exc.code) if isinstance(exc.code, int) else 1
         if not default_launch or code == 0:
             return code
-        message = str(exc.code or "客户端启动已中止。")
+        message = str(exc.code or "Client startup was aborted.")
         log_path = _write_startup_log(f"startup exited code={code}: {message}")
         _show_startup_message(
-            "Endfield Logs 客户端启动失败",
-            f"{message}\n\n日志：{log_path}",
+            "Endfield Logs Client - Startup Error",
+            f"{message}\n\nLog: {log_path}",
             error=True,
         )
         return code
@@ -171,9 +174,9 @@ def run() -> int:
         details = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
         log_path = _write_startup_log(f"unexpected startup failure\n{details}")
         _show_startup_message(
-            "Endfield Logs 客户端启动失败",
-            f"客户端启动失败，已停止本次启动且不会遗留上传器。\n\n"
-            f"错误：{type(exc).__name__}: {exc}\n\n日志：{log_path}",
+            "Endfield Logs Client - Startup Error",
+            "Client startup encountered an unexpected error and has stopped safely.\n\n"
+            f"Error: {type(exc).__name__}: {exc}\n\nLog: {log_path}",
             error=True,
         )
         return 1

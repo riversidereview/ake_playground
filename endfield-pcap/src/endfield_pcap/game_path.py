@@ -88,28 +88,31 @@ def prompt_for_game_dir_tk(start_dir: Path | None = None) -> Path | None:
         current_dir = str(_preferred_launcher_start_dir(start_dir))
         while True:
             messagebox.showinfo(
-                "首次设置游戏路径",
-                "请选择 Hypergryph Launcher 目录、Endfield Game 目录或 Endfield.exe。\n\n"
-                "客户端会保存这个路径，后续启动不会自动扫描磁盘。",
+                "First-Time Game Directory Setup",
+                "Please select the Hypergryph Launcher directory, Endfield Game directory, or Endfield.exe.\n\n"
+                "The client will save this path and will not scan disks on future startups.",
                 parent=root,
             )
             select_exe = messagebox.askyesnocancel(
-                "选择方式",
-                "选择 Endfield.exe 吗？\n\n是：选择 Endfield.exe\n否：选择 Hypergryph Launcher 或游戏目录\n取消：退出",
+                "Select Game Location Method",
+                "Would you like to select Endfield.exe directly?\n\n"
+                "• Yes: Choose Endfield.exe file\n"
+                "• No: Choose Launcher or Game directory\n"
+                "• Cancel: Exit startup",
                 parent=root,
             )
             if select_exe is None:
                 return None
             if select_exe:
                 selected = filedialog.askopenfilename(
-                    title="选择 Endfield.exe",
+                    title="Select Endfield.exe",
                     initialdir=current_dir,
                     filetypes=[("Endfield.exe", "Endfield.exe"), ("Executable Files", "*.exe"), ("All Files", "*.*")],
                     parent=root,
                 )
             else:
                 selected = filedialog.askdirectory(
-                    title="选择 Hypergryph Launcher 或 Endfield Game 目录",
+                    title="Select Hypergryph Launcher or Endfield Game Directory",
                     initialdir=current_dir,
                     parent=root,
                 )
@@ -120,9 +123,9 @@ def prompt_for_game_dir_tk(start_dir: Path | None = None) -> Path | None:
             if is_valid_game_dir(candidate):
                 return candidate
             messagebox.showwarning(
-                "目录无效",
-                "所选位置没有找到 Hypergryph Launcher\\games\\Endfield Game，"
-                "也没有同时找到 Endfield.exe 和 GameAssembly.dll，请重新选择。",
+                "Invalid Game Directory",
+                "The selected location does not contain Hypergryph Launcher\\games\\Endfield Game, "
+                "nor does it contain both Endfield.exe and GameAssembly.dll. Please choose a valid directory.",
                 parent=root,
             )
     finally:

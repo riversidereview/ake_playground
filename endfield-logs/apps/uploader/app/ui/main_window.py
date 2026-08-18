@@ -340,22 +340,32 @@ class MainWindow(QMainWindow):
         tray.setToolTip(tr("app_title"))
         menu = QMenu(self)
 
-        show_action = QAction(tr("tray_show"), self)
-        show_action.triggered.connect(self._restore_from_tray)
-        menu.addAction(show_action)
+        self._tray_show_action = QAction(tr("tray_show"), self)
+        self._tray_show_action.triggered.connect(self._restore_from_tray)
+        menu.addAction(self._tray_show_action)
 
-        settings_action = QAction(tr("tray_settings"), self)
-        settings_action.triggered.connect(self._handle_open_settings)
-        menu.addAction(settings_action)
+        self._tray_settings_action = QAction(tr("tray_settings"), self)
+        self._tray_settings_action.triggered.connect(self._handle_open_settings)
+        menu.addAction(self._tray_settings_action)
 
-        quit_action = QAction(tr("tray_exit"), self)
-        quit_action.triggered.connect(QApplication.quit)
-        menu.addAction(quit_action)
+        self._tray_quit_action = QAction(tr("tray_exit"), self)
+        self._tray_quit_action.triggered.connect(QApplication.quit)
+        menu.addAction(self._tray_quit_action)
 
         tray.setContextMenu(menu)
         tray.activated.connect(self._handle_tray_activated)
         tray.show()
         self._tray_icon = tray
+
+    def _retranslate_tray(self) -> None:
+        if self._tray_icon is not None:
+            self._tray_icon.setToolTip(tr("app_title"))
+        if hasattr(self, "_tray_show_action") and self._tray_show_action is not None:
+            self._tray_show_action.setText(tr("tray_show"))
+        if hasattr(self, "_tray_settings_action") and self._tray_settings_action is not None:
+            self._tray_settings_action.setText(tr("tray_settings"))
+        if hasattr(self, "_tray_quit_action") and self._tray_quit_action is not None:
+            self._tray_quit_action.setText(tr("tray_exit"))
 
     def _handle_tray_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
         if reason in (
@@ -456,16 +466,48 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentWidget(self.battle_upload_view)
         self._refresh_status_bar(tr("phase_waiting_upload"))
 
-    def _refresh_status_bar(self, phase: str) -> None:
-        self._current_phase = phase
+    def _refresh_status_bar(
+        self,
+        phase: str | None = None,
+        *,
+        phase_key: str | None = None,
+        **phase_kwargs: Any,
+    ) -> None:
+        if phase_key is not None:
+            self._current_phase_key = phase_key
+            self._current_phase_kwargs = phase_kwargs
+            self._current_phase = tr(phase_key, **phase_kwargs)
+        elif phase is not None:
+            self._current_phase = phase
+            self._current_phase_key = None
+            self._current_phase_kwargs = {}
+        elif getattr(self, "_current_phase_key", None):
+            self._current_phase = tr(self._current_phase_key, **getattr(self, "_current_phase_kwargs", {}))
+
+        current_phase = getattr(self, "_current_phase", tr("status_ready"))
         nickname = self.store.session.nickname if self.store.session else tr("status_bar_not_logged_in")
         file_name = self.store.current_trace_file_name or tr("status_bar_no_file")
         self._status_user_label.setText(tr("status_bar_account", nickname=nickname))
         self._status_file_label.setText(tr("status_bar_file", file=file_name))
-        self._status_phase_label.setText(tr("status_bar_phase", phase=phase))
+        self._status_phase_label.setText(tr("status_bar_phase", phase=current_phase))
 
-    def _set_server_status(self, message: str, *, error: bool = False) -> None:
-        self._current_server_status = message
+    def _set_server_status(
+        self,
+        message: str | None = None,
+        *,
+        status_key: str | None = None,
+        error: bool = False,
+    ) -> None:
+        if status_key is not None:
+            self._current_server_status_key = status_key
+            self._current_server_status = tr(status_key)
+        elif message is not None:
+            self._current_server_status = message
+            self._current_server_status_key = None
+        elif getattr(self, "_current_server_status_key", None):
+            self._current_server_status = tr(self._current_server_status_key)
+
+        current_status = getattr(self, "_current_server_status", tr("server_pending_check"))
         self._current_server_error = error
         if error:
             self._status_server_label.setStyleSheet(
@@ -483,15 +525,15 @@ class MainWindow(QMainWindow):
                 " color: #24507d;"
                 "}"
             )
-        self._status_server_label.setText(tr("status_bar_server", status=message))
+        self._status_server_label.setText(tr("status_bar_server", status=current_status))
 
     def _run_healthcheck(self, *, startup: bool = False) -> bool:
         try:
             self.api_client.healthcheck()
         except Exception as exc:  # noqa: BLE001
-            self._set_server_status(tr("server_connect_failed"), error=True)
+            self._set_server_status(status_key="server_connect_failed", error=True)
             current_widget = self.stack.currentWidget()
-            message = f"当前无法连接 API：{exc}"
+            message = tr("msg_api_not_connected", error=str(exc))
             if current_widget is self.login_view:
                 self.login_view.set_message(message, error=True)
             elif current_widget is self.trace_import_view:
@@ -502,7 +544,7 @@ class MainWindow(QMainWindow):
                 self._refresh_status_bar(tr("phase_waiting_server_connect"))
             return False
 
-        self._set_server_status(tr("server_connected"))
+        self._set_server_status(status_key="server_connected", error=False)
         if startup:
             self._refresh_status_bar(tr("phase_waiting_login") if self.store.session is None else tr("phase_waiting_import"))
         return True
@@ -1304,14 +1346,15 @@ class MainWindow(QMainWindow):
         self.settings_store.save_settings(self.settings)
         set_locale(self.settings.language)
         self.setWindowTitle(tr("app_title"))
+        self._retranslate_tray()
         if hasattr(self.login_view, "retranslate_ui"):
             self.login_view.retranslate_ui()
         if hasattr(self.trace_import_view, "retranslate_ui"):
             self.trace_import_view.retranslate_ui()
         if hasattr(self.battle_upload_view, "retranslate_ui"):
             self.battle_upload_view.retranslate_ui()
-        self._refresh_status_bar(getattr(self, "_current_phase", tr("phase_waiting_login")))
-        self._set_server_status(getattr(self, "_current_server_status", tr("server_pending_check")), error=getattr(self, "_current_server_error", False))
+        self._refresh_status_bar()
+        self._set_server_status(error=getattr(self, "_current_server_error", False))
         self.api_client.update_base_url(self.settings.api_base_url)
         if self.store.session is not None:
             self.api_client.set_session_token(self.store.session.session_token)

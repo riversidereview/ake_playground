@@ -364,8 +364,7 @@ class LoginView(QWidget):
         self.password_input = self._build_line_edit(tr("field_password"))
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.confirm_password_input = self._build_line_edit(tr("field_confirm_password"))
-        self.confirm_password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.register_code_input = self._build_line_edit("6-digit code")
+        self.register_code_input = self._build_line_edit(tr("field_code_placeholder"))
 
         layout.addWidget(self.card_eyebrow)
         layout.addWidget(self.card_title)
@@ -556,6 +555,8 @@ class LoginView(QWidget):
             self.send_code_button.setText(tr("btn_send_code"))
         if hasattr(self, "register_code_label"):
             self.register_code_label.setText(tr("field_code"))
+        if hasattr(self, "register_code_input"):
+            self.register_code_input.setPlaceholderText(tr("field_code_placeholder"))
         self.set_mode(self._mode)
 
     def switch_to_login_with_email(self, email: str) -> None:
